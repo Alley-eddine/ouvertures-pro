@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Ouvertures Pro | Fenêtres, Portes & Volets',
-  description: 'Votre artisan de confiance pour tous travaux de fenêtres, portes et volets en Île-de-France. Devis gratuit et pose de qualité.',
+  description: 'Ouvertures Pro - SARL spécialisée en menuiserie bois et PVC à Chilly-Mazarin (91). Installation de fenêtres, portes et volets en Île-de-France. Devis gratuit.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body className="font-sans antialiased">
         {children}
         <Analytics />

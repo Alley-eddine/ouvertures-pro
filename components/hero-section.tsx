@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    setLoaded(true);
+
     const handleScroll = () => {
       if (heroRef.current) {
         const scrollY = window.scrollY;
-        const heroElement = heroRef.current;
-        heroElement.style.transform = `translateY(${scrollY * 0.5}px)`;
+        heroRef.current.style.transform = `translateY(${scrollY * 0.4}px)`;
       }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -31,27 +33,52 @@ export function HeroSection() {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+          <div className="max-w-3xl">
+            {/* Badge */}
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8 transition-all duration-700 ${
+                loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-sm text-white/90 font-medium">Devis gratuit sous 24h</span>
+            </div>
+
+            <h1
+              className={`text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 transition-all duration-700 delay-200 ${
+                loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+            >
               <span className="block">Ouvertures Pro :</span>
-              <span className="text-primary">{"L'Excellence & La"}</span>
-              <span className="block text-primary">Qualité Durable.</span>
+              <span className="text-gradient">{"L'Excellence"}</span>
+              <span className="text-white">{" & La"}</span>
+              <span className="block text-gradient">Qualité Durable.</span>
             </h1>
-            <p className="text-lg text-white/90 mb-8 leading-relaxed">
-              Garantissez la sécurité et le confort de votre maison avec notre expertise reconnue. 
+
+            <p
+              className={`text-lg md:text-xl text-white/85 mb-10 leading-relaxed max-w-xl transition-all duration-700 delay-400 ${
+                loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+            >
+              Garantissez la sécurité et le confort de votre maison avec notre expertise reconnue.
               Fenêtres, portes et volets de qualité supérieure.
             </p>
-            <div className="flex flex-wrap gap-4">
+
+            <div
+              className={`flex flex-wrap gap-4 transition-all duration-700 ${
+                loaded ? "opacity-100 translate-y-0 delay-500" : "opacity-0 translate-y-8"
+              }`}
+            >
               <Button
                 asChild
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-white px-8"
+                className="bg-primary hover:bg-primary/90 text-white px-8 text-base h-12 btn-shine"
               >
                 <Link href="/devis">Demander Votre Devis Gratuit</Link>
               </Button>
@@ -59,21 +86,33 @@ export function HeroSection() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-foreground px-8"
+                className="border-white/30 text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 px-8 text-base h-12"
               >
                 <Link href="#realisations">Voir Nos Travaux</Link>
               </Button>
+            </div>
+
+            {/* Stats bar */}
+            <div
+              className={`flex gap-8 mt-12 pt-8 border-t border-white/15 transition-all duration-700 ${
+                loaded ? "opacity-100 translate-y-0 delay-700" : "opacity-0 translate-y-8"
+              }`}
+            >
+              {[
+                { value: "500+", label: "Projets réalisés" },
+                { value: "10 ans", label: "Garantie décennale" },
+                { value: "4.9/5", label: "Avis clients" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-white">
+                  <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
+                  <p className="text-sm text-white/60">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-        <div className="w-6 h-10 rounded-full border-2 border-white flex items-start justify-center p-2">
-          <div className="w-1 h-3 bg-white rounded-full" />
-        </div>
-      </div>
     </section>
   );
 }
