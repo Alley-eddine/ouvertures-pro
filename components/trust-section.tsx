@@ -1,36 +1,36 @@
 "use client";
 
-import { ShieldCheck, Award, Clock, BadgeCheck } from "lucide-react";
+import { Sparkles, Flag, Clock, MessageCircle } from "lucide-react";
 import { useScrollReveal, useCountUp } from "@/hooks/use-scroll-reveal";
 
 const trustItems = [
   {
-    icon: ShieldCheck,
-    title: "RGE Qualibat",
-    description: "Certification reconnue, gage de qualité et d'éligibilité aux aides.",
-    count: 10,
-    suffix: " ans",
-  },
-  {
-    icon: BadgeCheck,
+    icon: Flag,
     title: "Made in France",
-    description: "Matériaux certifiés NF & CE, sélectionnés auprès de fournisseurs français.",
+    description: "Menuiseries sélectionnées chez des fabricants français. Plus chères, mais ça vaut le coup — c'est ce que disent les clients.",
     count: 100,
     suffix: "%",
   },
   {
     icon: Clock,
-    title: "Étude Gratuite",
-    description: "Devis et étude personnalisée offerts, réponse sous 24h.",
+    title: "Devis sous",
+    description: "Étude personnalisée gratuite, réponse rapide. On ne fait pas attendre.",
     count: 24,
     suffix: "h",
   },
   {
-    icon: Award,
-    title: "Projets Réalisés",
-    description: "Des centaines de clients satisfaits en Île-de-France depuis 2018.",
-    count: 500,
-    suffix: "+",
+    icon: Sparkles,
+    title: "Chantier propre",
+    description: "Bâches, nettoyage chaque soir, sol laissé impeccable. Mentionné dans 80% de nos avis Google.",
+    count: 8,
+    suffix: "/10",
+  },
+  {
+    icon: MessageCircle,
+    title: "Au métier",
+    description: "7 ans à Chilly-Mazarin, des centaines de chantiers en Île-de-France. Une équipe stable de trois artisans.",
+    count: 7,
+    suffix: " ans",
   },
 ];
 

@@ -7,9 +7,9 @@ export function Footer() {
   return (
     <footer className="bg-foreground text-background py-16">
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-10 mb-10">
-          {/* Logo & Description */}
-          <div className="md:col-span-1">
+        <div className="grid md:grid-cols-3 gap-10 mb-10">
+          {/* Logo & Contact */}
+          <div>
             <Image
               src="/images/logofinal.png"
               alt="Ouvertures Pro"
@@ -18,8 +18,8 @@ export function Footer() {
               className="mb-4 brightness-0 invert"
             />
             <p className="text-background/70 text-sm leading-relaxed">
-              Votre artisan de confiance pour tous travaux de fenêtres, portes et
-              volets dans toute la région.
+              Cédric Tamoud et son équipe — artisans menuisiers à Chilly-Mazarin,
+              au service de l&apos;Île-de-France depuis 2018.
             </p>
             <div className="mt-4 space-y-2 text-sm">
               <p>
@@ -35,6 +35,10 @@ export function Footer() {
                 <span className="text-background">
                   31 Avenue Mazarin, 91380 Chilly-Mazarin
                 </span>
+              </p>
+              <p className="pt-2">
+                <span className="text-background/50">Horaires:</span>{" "}
+                <span className="text-background">Lun – Ven · 9h-12h / 14h-18h</span>
               </p>
             </div>
           </div>
@@ -60,23 +64,6 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Services */}
-          <div>
-            <h4 className="font-semibold mb-4">Nos Services</h4>
-            <ul className="space-y-3 text-sm text-background/70">
-              <li>Fenêtres PVC & Aluminium</li>
-              <li>Portes d&apos;entrée</li>
-              <li>Portes de garage</li>
-              <li>Volets roulants</li>
-              <li>Stores</li>
-              <li>Réparation & Dépannage</li>
-            </ul>
-            <div className="mt-6 text-sm text-background/50">
-              <p className="font-medium text-background/70 mb-1">Horaires</p>
-              <p>Lun - Ven : 9h-12h / 14h-18h</p>
-            </div>
           </div>
 
           {/* Social & CTA */}

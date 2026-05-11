@@ -1,44 +1,44 @@
 "use client";
 
-import { DoorOpen, Fence, RollerCoaster, Wrench, Warehouse, SunMedium } from "lucide-react";
+import { AppWindow, DoorClosed, Blinds, Warehouse, SunMedium, Fence } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 const services = [
   {
-    icon: DoorOpen,
-    title: "Fenêtres",
-    description: "PVC, aluminium, hybride ou textural. Pose neuve ou rénovation complète.",
+    icon: AppWindow,
+    title: "Fenêtres & baies vitrées",
+    description: "PVC, aluminium ou mixte bois/alu. Double ou triple vitrage. On dépose les anciennes, on hisse les nouvelles, on isole.",
     color: "from-blue-500/10 to-blue-600/5",
   },
   {
-    icon: Fence,
+    icon: DoorClosed,
     title: "Portes d'entrée",
-    description: "Portes d'entrée sécurisées et sur mesure, design moderne ou classique.",
+    description: "Portes blindées, portes acier, portes vitrées. Sur mesure, avec digicode si besoin. Sécurité d'abord.",
     color: "from-amber-500/10 to-amber-600/5",
   },
   {
-    icon: RollerCoaster,
+    icon: Blinds,
     title: "Volets",
-    description: "Volets roulants, battants ou coulissants. Motorisation disponible.",
+    description: "Volets roulants (motorisés ou solaires), volets battants, volets coulissants. On garde ce qui peut être gardé, on rénove le reste.",
     color: "from-emerald-500/10 to-emerald-600/5",
   },
   {
     icon: Warehouse,
     title: "Portes de garage",
-    description: "Portes de garage sectionnelles, enroulables ou battantes sur mesure.",
+    description: "Sectionnelles, enroulables ou battantes. Motorisation comprise. Pose en demi-journée pour la plupart des modèles.",
     color: "from-violet-500/10 to-violet-600/5",
   },
   {
-    icon: SunMedium,
-    title: "Stores",
-    description: "Stores bannes, stores intérieurs et extérieurs pour votre confort.",
-    color: "from-orange-500/10 to-orange-600/5",
+    icon: Fence,
+    title: "Portails & clôtures",
+    description: "Portails aluminium ou acier, portillons, clôtures, vitrines commerciales. Tout ce qui ferme et qui doit tenir.",
+    color: "from-slate-500/10 to-slate-600/5",
   },
   {
-    icon: Wrench,
-    title: "Réparation",
-    description: "Intervention rapide pour réparation et dépannage d'urgence.",
-    color: "from-red-500/10 to-red-600/5",
+    icon: SunMedium,
+    title: "Stores & dépannage",
+    description: "Stores bannes, stores intérieurs. Réparation de volets bloqués, changement de vitres, remplacement de gonds. Souvent en moins d'une heure.",
+    color: "from-orange-500/10 to-orange-600/5",
   },
 ];
 
@@ -54,11 +54,14 @@ export function ServicesSection() {
           className={`text-center mb-16 ${titleVisible ? "animate-reveal-up" : "opacity-0"}`}
         >
           <p className="text-primary font-medium mb-2 uppercase tracking-wide text-sm">
-            Ce que nous faisons
+            Ce qu&apos;on pose chez vous
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-            Nos Services Experts
+            Tout ce qui ferme et qui s&apos;ouvre.
           </h2>
+          <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
+            Pose neuve, rénovation ou dépannage. On vient voir, on conseille, on fait un devis. Puis on pose.
+          </p>
         </div>
 
         <div ref={cardsRef} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">

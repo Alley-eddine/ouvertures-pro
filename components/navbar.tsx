@@ -29,7 +29,7 @@ export function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled ? "bg-white shadow-lg py-2" : "bg-transparent py-4"
+        isScrolled ? "bg-white shadow-lg py-3" : "bg-transparent py-6"
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -39,7 +39,9 @@ export function Navbar() {
             alt="Ouvertures Pro"
             width={160}
             height={60}
-            className="h-12 w-auto transition-transform duration-300 group-hover:scale-105"
+            priority
+            style={{ height: "auto" }}
+            className="h-8 md:h-9 w-auto transition-transform duration-300 group-hover:scale-105"
           />
         </Link>
 
@@ -49,7 +51,7 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`relative text-sm font-medium transition-colors duration-300 hover:text-primary ${
+              className={`relative text-base font-medium transition-colors duration-300 hover:text-primary ${
                 isScrolled ? "text-foreground" : "text-white"
               } after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-primary after:transition-all after:duration-300 hover:after:w-full`}
             >
@@ -59,7 +61,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:block">
-          <Button asChild className="bg-primary hover:bg-primary/90 text-white btn-shine">
+          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white text-base btn-shine">
             <Link href="/devis">Demander Devis</Link>
           </Button>
         </div>
