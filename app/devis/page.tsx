@@ -94,10 +94,12 @@ export default function DevisPage() {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <Link href="/">
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-0VhliwWw6iRTujO0oxZr9gs8uk9Fou.png"
+              src="/images/logofinal.png"
               alt="Ouvertures Pro"
               width={140}
               height={50}
+              priority
+              style={{ height: "auto" }}
               className="brightness-0 invert"
             />
           </Link>

@@ -2,13 +2,22 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
+import { Maximize2 } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface BeforeAfterSliderProps {
   beforeImage: string;
   afterImage: string;
   beforeLabel?: string;
   afterLabel?: string;
+  containerClassName?: string;
+  imageFit?: "cover" | "contain";
 }
 
 function BeforeAfterSlider({
@@ -16,6 +25,8 @@ function BeforeAfterSlider({
   afterImage,
   beforeLabel = "Avant",
   afterLabel = "Après",
+  containerClassName = "aspect-[4/3] rounded-xl border border-border",
+  imageFit = "cover",
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,10 +72,12 @@ function BeforeAfterSlider({
     isDragging.current = false;
   }, []);
 
+  const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-[4/3] rounded-xl overflow-hidden cursor-col-resize select-none border border-border"
+      className={`relative w-full overflow-hidden cursor-col-resize select-none ${containerClassName}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -88,21 +101,23 @@ function BeforeAfterSlider({
         src={afterImage}
         alt="Après travaux"
         fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, 50vw"
+        className={fitClass}
+        sizes={imageFit === "contain" ? "95vw" : "(max-width: 768px) 100vw, 50vw"}
+        priority={imageFit === "contain"}
       />
 
-      {/* Before image (clipped) */}
+      {/* Before image (revealed via clip-path so it never squishes) */}
       <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${sliderPosition}%` }}
+        className="absolute inset-0"
+        style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
         <Image
           src={beforeImage}
           alt="Avant travaux"
           fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          className={fitClass}
+          sizes={imageFit === "contain" ? "95vw" : "(max-width: 768px) 100vw, 50vw"}
+          priority={imageFit === "contain"}
         />
       </div>
 
@@ -141,32 +156,15 @@ function BeforeAfterSlider({
   );
 }
 
-const realisations = [
-  {
-    id: 1,
-    title: "Rénovation fenêtres PVC double vitrage",
-    imageBefore: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
-    imageAfter: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
-  },
-  {
-    id: 2,
-    title: "Pose porte d'entrée blindée",
-    imageBefore: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&h=600&fit=crop",
-    imageAfter: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
-  },
-  {
-    id: 3,
-    title: "Installation volets roulants motorisés",
-    imageBefore: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=600&fit=crop",
-    imageAfter: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
-  },
-  {
-    id: 4,
-    title: "Baie vitrée coulissante aluminium",
-    imageBefore: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&h=600&fit=crop",
-    imageAfter: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=600&fit=crop",
-  },
-];
+const realisations = Array.from({ length: 12 }, (_, i) => {
+  const n = i + 1;
+  return {
+    id: n,
+    title: `Réalisation N°${n}`,
+    imageBefore: `/images/realisations/avant-apres/${n}avant.webp`,
+    imageAfter: `/images/realisations/avant-apres/${n}apres.webp`,
+  };
+});
 
 export function RealisationsSection() {
   const { ref: titleRef, isVisible: titleVisible } = useScrollReveal();
@@ -197,10 +195,39 @@ export function RealisationsSection() {
               className={`${gridVisible ? "animate-reveal-up" : "opacity-0"}`}
               style={gridVisible ? { animationDelay: `${index * 0.15}s` } : undefined}
             >
-              <BeforeAfterSlider
-                beforeImage={item.imageBefore}
-                afterImage={item.imageAfter}
-              />
+              <div className="relative group">
+                <BeforeAfterSlider
+                  beforeImage={item.imageBefore}
+                  afterImage={item.imageAfter}
+                />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      className="absolute bottom-4 right-4 z-30 w-11 h-11 rounded-full bg-background/90 backdrop-blur-sm shadow-lg flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-background opacity-80 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                      aria-label={`Voir ${item.title} en grand`}
+                    >
+                      <Maximize2 size={18} className="text-foreground" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent
+                    className="!max-w-[95vw] w-[95vw] p-3 sm:p-4 gap-2 bg-background"
+                    showCloseButton
+                  >
+                    <DialogTitle className="text-base font-semibold pr-8">
+                      {item.title}
+                    </DialogTitle>
+                    <BeforeAfterSlider
+                      beforeImage={item.imageBefore}
+                      afterImage={item.imageAfter}
+                      containerClassName="h-[78vh] bg-black/5 rounded-lg"
+                      imageFit="contain"
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
               <p className="text-foreground font-semibold mt-4 text-center text-lg">
                 {item.title}
               </p>

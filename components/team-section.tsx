@@ -6,21 +6,24 @@ import Link from "next/link";
 const teamMembers = [
   {
     name: "Cédric Tamoud",
-    role: "Gérant / Fondateur",
+    role: "Gérant — fondateur",
     image: "/images/team-1.jpg",
-    description: "À la tête d'Ouvertures Pro depuis 2018, Cédric pilote chaque projet avec passion et exigence.",
-  },
-  {
-    name: "Hervé",
-    role: "Technicien Poseur",
-    image: "/images/team-2.jpg",
-    description: "Spécialiste en installation et pose de fenêtres, portes et volets.",
+    description: "Le patron. Il fonde Ouvertures Pro en 2018, vient voir chaque chantier, conseille les produits, monte chaque devis. Souvent cité dans les avis Google pour ses « conseils précieux ».",
+    badge: "Gérant",
   },
   {
     name: "Benjamin",
-    role: "Technicien Poseur",
+    role: "Poseur — salarié",
     image: "/images/team-3.jpg",
-    description: "Précision et soin du détail pour des finitions impeccables.",
+    description: "Bonnet rose en option. Précision sur les finitions, sourire en prime. Sur la plupart des chantiers aux côtés de Cédric.",
+    badge: null,
+  },
+  {
+    name: "Hervé",
+    role: "Poseur — salarié",
+    image: "/images/team-2.jpg",
+    description: "Renfort pose et interventions rapides. Le 3e homme sur les gros chantiers, le 1er sur les dépannages.",
+    badge: null,
   },
 ];
 
@@ -36,13 +39,14 @@ export function TeamSection() {
           className={`text-center mb-16 ${titleVisible ? "animate-reveal-up" : "opacity-0"}`}
         >
           <p className="text-primary font-medium mb-2 uppercase tracking-wide text-sm">
-            Les visages derrière le travail
+            Qui débarque chez vous
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-            Notre Équipe
+            Cédric et son équipe.
           </h2>
-          <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
-            Des professionnels passionnés, engagés pour la qualité de vos projets.
+          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
+            Ouvertures Pro, c&apos;est Cédric Tamoud et ses deux salariés, Benjamin et Hervé.
+            Pas de sous-traitance, pas d&apos;intérimaires — toujours les mêmes têtes sur vos chantiers.
           </p>
         </div>
 
@@ -55,15 +59,17 @@ export function TeamSection() {
               }`}
               style={gridVisible ? { animationDelay: `${index * 0.12}s` } : undefined}
             >
-              {/* Photo container */}
-              <div className="relative overflow-hidden rounded-2xl mb-5 aspect-[3/4] bg-muted">
-                {/* Placeholder - replace with real photos */}
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <div className="w-24 h-24 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
-                    <span className="text-4xl font-bold text-white/80">
-                      {member.name.charAt(0)}
-                    </span>
+              {/* Photo container — placeholder until team photos are added */}
+              <div className="relative overflow-hidden rounded-2xl mb-5 aspect-[3/4] bg-gradient-to-br from-secondary/30 via-primary/10 to-muted">
+                {member.badge && (
+                  <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] uppercase tracking-wider font-semibold shadow">
+                    {member.badge}
                   </div>
+                )}
+                <div className="absolute inset-0 flex items-end p-6">
+                  <p className="text-foreground/40 text-xs uppercase tracking-widest font-medium">
+                    Photo à venir
+                  </p>
                 </div>
 
                 {/* Hover overlay */}
@@ -87,10 +93,6 @@ export function TeamSection() {
           ))}
         </div>
 
-        {/* Note for photos */}
-        <p className="text-center text-sm text-muted-foreground/60 mt-12 italic">
-          Ajoutez vos photos d&apos;équipe dans public/images/ (team-1.jpg, team-2.jpg, team-3.jpg)
-        </p>
       </div>
     </section>
   );
