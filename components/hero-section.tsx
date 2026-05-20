@@ -38,7 +38,7 @@ export function HeroSection() {
         ref={heroRef}
         className="absolute inset-0 w-full h-[120%] -top-[10%]"
         style={{
-          backgroundImage: "url('/images/realisations/avant-apres/7apres.webp')",
+          backgroundImage: "url('/images/hero/realisation-baies-vitrees-terrasse-moderne.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -47,26 +47,16 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
+      <div className="relative z-10 h-full flex items-center pt-24 md:pt-32">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl">
-            {/* Badge */}
-            <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8 transition-all duration-700 ${
-                loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-sm text-white/90 font-medium">Devis gratuit sous 24h</span>
-            </div>
-
             <h1
               className={`text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 transition-all duration-700 delay-200 ${
                 loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
               <span className="block">Fenêtres, portes,</span>
-              <span className="block">volets <span className="text-gradient">et portails.</span></span>
+              <span className="block">volets <span className="text-primary">et portails.</span></span>
               <span className="block text-white/80 text-3xl md:text-4xl lg:text-5xl mt-2 font-semibold">Pose &amp; rénovation.</span>
             </h1>
 

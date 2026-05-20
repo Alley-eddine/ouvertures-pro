@@ -1,27 +1,27 @@
 "use client";
 
+import Image from "next/image";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
-import Link from "next/link";
 
 const teamMembers = [
   {
     name: "Cédric Tamoud",
     role: "Gérant — fondateur",
-    image: "/images/team-1.jpg",
+    image: "/images/team/cedric-tamoud-gerant-ouvertures-pro.webp",
     description: "Le patron. Il fonde Ouvertures Pro en 2018, vient voir chaque chantier, conseille les produits, monte chaque devis. Souvent cité dans les avis Google pour ses « conseils précieux ».",
     badge: "Gérant",
   },
   {
     name: "Benjamin",
     role: "Poseur — salarié",
-    image: "/images/team-3.jpg",
+    image: "/images/team/benjamin-poseur-ouvertures-pro.webp",
     description: "Bonnet rose en option. Précision sur les finitions, sourire en prime. Sur la plupart des chantiers aux côtés de Cédric.",
     badge: null,
   },
   {
     name: "Hervé",
     role: "Poseur — salarié",
-    image: "/images/team-2.jpg",
+    image: "/images/team/herve-poseur-ouvertures-pro.webp",
     description: "Renfort pose et interventions rapides. Le 3e homme sur les gros chantiers, le 1er sur les dépannages.",
     badge: null,
   },
@@ -59,23 +59,25 @@ export function TeamSection() {
               }`}
               style={gridVisible ? { animationDelay: `${index * 0.12}s` } : undefined}
             >
-              {/* Photo container — placeholder until team photos are added */}
-              <div className="relative overflow-hidden rounded-2xl mb-5 aspect-[3/4] bg-gradient-to-br from-secondary/30 via-primary/10 to-muted">
+              {/* Photo container */}
+              <div className="relative overflow-hidden rounded-2xl mb-5 aspect-[3/4] bg-muted">
+                <Image
+                  src={member.image}
+                  alt={member.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, 33vw"
+                />
                 {member.badge && (
                   <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] uppercase tracking-wider font-semibold shadow">
                     {member.badge}
                   </div>
                 )}
-                <div className="absolute inset-0 flex items-end p-6">
-                  <p className="text-foreground/40 text-xs uppercase tracking-widest font-medium">
-                    Photo à venir
-                  </p>
-                </div>
 
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end p-5">
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end p-5">
                   <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                    <p className="text-white/90 text-sm leading-relaxed mb-3">
+                    <p className="text-white text-sm leading-relaxed">
                       {member.description}
                     </p>
                   </div>

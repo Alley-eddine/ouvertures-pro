@@ -33,12 +33,12 @@ export const metadata: Metadata = {
   ],
   icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.png',
   },
+  manifest: '/site.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
@@ -58,6 +58,72 @@ export const metadata: Metadata = {
   },
 };
 
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: SITE_NAME,
+  legalName: 'Ouvertures Pro SARL',
+  description: DESCRIPTION,
+  url: SITE_URL,
+  telephone: ['+33 1 69 30 91 43', '+33 7 71 74 20 83'],
+  email: 'contact@ouvertures-pro.fr',
+  image: `${SITE_URL}/apple-touch-icon.png`,
+  logo: `${SITE_URL}/images/logofinal.png`,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '31 Avenue Mazarin',
+    postalCode: '91380',
+    addressLocality: 'Chilly-Mazarin',
+    addressRegion: 'Île-de-France',
+    addressCountry: 'FR',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 48.6631,
+    longitude: 2.3157,
+  },
+  areaServed: [
+    { '@type': 'AdministrativeArea', name: 'Île-de-France' },
+    { '@type': 'AdministrativeArea', name: 'Essonne' },
+    { '@type': 'AdministrativeArea', name: 'Hauts-de-Seine' },
+    { '@type': 'AdministrativeArea', name: 'Val-de-Marne' },
+  ],
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '09:00',
+      closes: '12:00',
+    },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '14:00',
+      closes: '18:00',
+    },
+  ],
+  priceRange: '€€',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.8',
+    bestRating: '5',
+    reviewCount: 24,
+  },
+  sameAs: ['https://www.facebook.com/ouverturespro'],
+  founder: { '@type': 'Person', name: 'Cédric Tamoud' },
+  foundingDate: '2018',
+  knowsAbout: [
+    'Pose de fenêtres',
+    'Installation de portes d\'entrée',
+    'Pose de volets',
+    'Installation de portails',
+    'Pose de portes de garage',
+    'Installation de stores bannes',
+    'Rénovation menuiserie',
+    'Dépannage menuiserie',
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -66,6 +132,10 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${geist.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        />
         {children}
         <Analytics />
       </body>
