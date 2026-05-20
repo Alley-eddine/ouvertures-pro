@@ -21,15 +21,16 @@ export function Navbar() {
   const navLinks = [
     { href: "#accueil", label: "Accueil" },
     { href: "#realisations", label: "Réalisations" },
-    { href: "#services", label: "Nos Services" },
-    { href: "#equipe", label: "L'Équipe" },
+    { href: "#galerie", label: "Galerie" },
+    { href: "#services", label: "Services" },
+    { href: "#equipe", label: "Équipe" },
     { href: "#contact", label: "Contact" },
   ];
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled ? "bg-white shadow-lg py-3" : "bg-transparent py-6"
+        isScrolled ? "bg-white shadow-lg py-2 md:py-3" : "bg-transparent py-3 md:py-6"
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -41,7 +42,7 @@ export function Navbar() {
             height={60}
             priority
             style={{ height: "auto" }}
-            className="h-8 md:h-9 w-auto transition-transform duration-300 group-hover:scale-105"
+            className="h-7 md:h-9 w-auto transition-transform duration-300 group-hover:scale-105"
           />
         </Link>
 
