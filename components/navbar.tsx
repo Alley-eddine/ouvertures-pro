@@ -42,7 +42,9 @@ export function Navbar() {
             height={60}
             priority
             style={{ height: "auto" }}
-            className="h-7 md:h-9 w-auto transition-transform duration-300 group-hover:scale-105"
+            className={`h-7 md:h-9 w-auto transition-all duration-500 group-hover:scale-105 ${
+              isScrolled ? "" : "brightness-0 invert drop-shadow-lg"
+            }`}
           />
         </Link>
 

@@ -6,7 +6,9 @@ import './globals.css'
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' });
 
-const SITE_URL = 'https://ouvertures-pro.fr';
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://ouvertures-pro.vercel.app');
 const SITE_NAME = 'Ouvertures Pro';
 const DESCRIPTION =
   'Ouvertures Pro - SARL spécialisée en menuiserie bois et PVC à Chilly-Mazarin (91). Installation de fenêtres, portes et volets en Île-de-France. Devis gratuit.';
