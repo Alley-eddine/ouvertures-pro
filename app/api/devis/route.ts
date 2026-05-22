@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { EMAIL_LOGO_BASE64 } from "@/lib/email-logo-base64";
 
 const SERVICE_LABELS: Record<string, string> = {
   fenetres: "Fenêtres",
@@ -187,7 +188,7 @@ export async function POST(req: Request) {
           <!-- Brand header -->
           <tr>
             <td style="padding: 28px 32px 20px 32px; text-align: center; border-bottom: 4px solid ${COLOR_PRIMARY}; background: #ffffff;">
-              <img src="${SITE_URL}/images/logofinal.png" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block;">
+              <img src="data:image/png;base64,${EMAIL_LOGO_BASE64}" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block;">
             </td>
           </tr>
 
