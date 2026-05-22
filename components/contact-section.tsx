@@ -29,9 +29,9 @@ export function ContactSection() {
   };
 
   const contactInfo = [
-    { icon: Phone, label: "Téléphone", value: "01 69 30 91 43 / 07 71 74 20 83" },
+    { icon: Phone, label: "Téléphone", value: "01 60 86 37 54 / 07 71 74 20 83" },
     { icon: Mail, label: "Email", value: "contact@ouvertures-pro.fr" },
-    { icon: MapPin, label: "Adresse", value: "31 Avenue Mazarin, 91380 Chilly-Mazarin" },
+    { icon: MapPin, label: "Adresse", value: "22 bis rue des Malines, 91090 Lisses" },
   ];
 
   return (
@@ -87,7 +87,7 @@ export function ContactSection() {
               </p>
               <div className="bg-card rounded-xl overflow-hidden h-48 border border-border">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2634.5!2d2.3157!3d48.6631!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e5de5e5c12a3e7%3A0x0!2s31+Avenue+Mazarin%2C+91380+Chilly-Mazarin!5e0!3m2!1sfr!2sfr"
+                  src="https://maps.google.com/maps?q=22+bis+rue+des+Malines+91090+Lisses&output=embed"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

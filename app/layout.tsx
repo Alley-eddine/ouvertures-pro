@@ -11,7 +11,7 @@ const SITE_URL =
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://ouvertures-pro.vercel.app');
 const SITE_NAME = 'Ouvertures Pro';
 const DESCRIPTION =
-  'Ouvertures Pro - SARL spécialisée en menuiserie bois et PVC à Chilly-Mazarin (91). Installation de fenêtres, portes et volets en Île-de-France. Devis gratuit.';
+  'Ouvertures Pro - SARL spécialisée en menuiserie bois et PVC à Lisses (91). Installation de fenêtres, portes et volets en Île-de-France. Devis gratuit.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     'menuiserie',
     'PVC',
     'aluminium',
-    'Chilly-Mazarin',
+    'Lisses',
     'Île-de-France',
     'devis gratuit',
   ],
@@ -67,22 +67,22 @@ const localBusinessSchema = {
   legalName: 'Ouvertures Pro SARL',
   description: DESCRIPTION,
   url: SITE_URL,
-  telephone: ['+33 1 69 30 91 43', '+33 7 71 74 20 83'],
+  telephone: ['+33 1 60 86 37 54', '+33 7 71 74 20 83'],
   email: 'contact@ouvertures-pro.fr',
   image: `${SITE_URL}/apple-touch-icon.png`,
   logo: `${SITE_URL}/images/logofinal.png`,
   address: {
     '@type': 'PostalAddress',
-    streetAddress: '31 Avenue Mazarin',
-    postalCode: '91380',
-    addressLocality: 'Chilly-Mazarin',
+    streetAddress: '22 bis rue des Malines',
+    postalCode: '91090',
+    addressLocality: 'Lisses',
     addressRegion: 'Île-de-France',
     addressCountry: 'FR',
   },
   geo: {
     '@type': 'GeoCoordinates',
-    latitude: 48.6631,
-    longitude: 2.3157,
+    latitude: 48.6018,
+    longitude: 2.4256,
   },
   areaServed: [
     { '@type': 'AdministrativeArea', name: 'Île-de-France' },

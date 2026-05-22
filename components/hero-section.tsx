@@ -65,7 +65,7 @@ export function HeroSection() {
                 loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
-              Cédric, Benjamin et Hervé — une équipe d&apos;artisans basée à Chilly-Mazarin.
+              Cédric, Benjamin et Hervé — une équipe d&apos;artisans basée à Lisses (91).
               Depuis 2018, on pose et on rénove vos menuiseries dans toute l&apos;Île-de-France.
               Devis sous 24h, conseil sans baratin.
             </p>
