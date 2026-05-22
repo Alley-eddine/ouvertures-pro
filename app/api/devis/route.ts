@@ -93,6 +93,19 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
   };
 }
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://ouverture-pro.fr");
+
+// Brand colors (matching the site primary teal-blue + brown secondary)
+const COLOR_PRIMARY = "#0e9cb8";
+const COLOR_PRIMARY_DARK = "#0a7d94";
+const COLOR_SECONDARY = "#8a6e4b";
+const COLOR_FG = "#1a1a1a";
+const COLOR_MUTED = "#6b7280";
+const COLOR_BG_SOFT = "#f8fafc";
+const COLOR_BORDER = "#e5e7eb";
+
 export async function POST(req: Request) {
   // Lazy-fail with a clear message if env vars are missing — easier debug than a 500.
   const apiKey = process.env.RESEND_API_KEY;
@@ -154,36 +167,184 @@ export async function POST(req: Request) {
 
   const html = `<!doctype html>
 <html lang="fr">
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-  <h1 style="font-size: 20px; margin: 0 0 4px 0;">Nouvelle demande de devis</h1>
-  <p style="color: #666; margin: 0 0 24px 0; font-size: 14px;">Reçue via ouverture-pro.fr</p>
-
-  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-    <tr><td colspan="2" style="background: #f5f5f5; padding: 10px 12px; font-weight: 600;">Contact</td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; width: 140px; color: #666;">Nom</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;"><strong>${escapeHtml(fullName)}</strong></td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #666;">Email</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;"><a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #666;">Téléphone</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;"><a href="tel:${escapeHtml(data.phone)}">${escapeHtml(data.phone)}</a></td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #666;">Contact préféré</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${escapeHtml(contactPrefLabel)}</td></tr>
-  </table>
-
-  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-    <tr><td colspan="2" style="background: #f5f5f5; padding: 10px 12px; font-weight: 600;">Lieu d'intervention</td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; width: 140px; color: #666;">Adresse</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${escapeHtml(data.address) || "(non renseignée)"}</td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #666;">Ville</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${escapeHtml(data.postalCode)} ${escapeHtml(data.city)}</td></tr>
-  </table>
-
-  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-    <tr><td colspan="2" style="background: #f5f5f5; padding: 10px 12px; font-weight: 600;">Projet</td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; width: 140px; color: #666;">Type</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${escapeHtml(projectTypeLabel)}</td></tr>
-    <tr><td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #666;">Services</td><td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${escapeHtml(servicesLabels) || "(aucun)"}</td></tr>
-  </table>
-
-  <div style="background: #f5f5f5; padding: 12px 16px; border-radius: 6px;">
-    <p style="font-weight: 600; margin: 0 0 8px 0;">Description</p>
-    <p style="margin: 0; white-space: pre-wrap; line-height: 1.5;">${nl2br(data.description) || "<em>(aucune description)</em>"}</p>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: ${COLOR_BG_SOFT}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: ${COLOR_FG}; line-height: 1.5;">
+  <!-- Preheader (hidden text shown in inbox preview) -->
+  <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    Demande de ${escapeHtml(fullName)} (${escapeHtml(data.postalCode)} ${escapeHtml(data.city)}) — ${escapeHtml(servicesLabels) || "services divers"}.
   </div>
 
-  <p style="margin-top: 32px; font-size: 12px; color: #999;">Cet email a été généré automatiquement depuis le formulaire de devis du site Ouvertures Pro.</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: ${COLOR_BG_SOFT};">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);">
+
+          <!-- Brand header -->
+          <tr>
+            <td style="padding: 28px 32px 20px 32px; text-align: center; border-bottom: 4px solid ${COLOR_PRIMARY}; background: #ffffff;">
+              <img src="${SITE_URL}/images/logofinal.png" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block;">
+            </td>
+          </tr>
+
+          <!-- Title -->
+          <tr>
+            <td style="padding: 32px 32px 8px 32px;">
+              <p style="margin: 0; color: ${COLOR_PRIMARY}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">📨 Nouvelle demande</p>
+              <h1 style="margin: 6px 0 4px 0; font-size: 24px; font-weight: 700; color: ${COLOR_FG}; line-height: 1.2;">
+                Demande de devis
+              </h1>
+              <p style="margin: 0; color: ${COLOR_MUTED}; font-size: 14px;">
+                Reçue via <a href="${SITE_URL}" style="color: ${COLOR_PRIMARY}; text-decoration: none;">ouverture-pro.fr</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Contact block -->
+          <tr>
+            <td style="padding: 16px 32px 0 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border: 1px solid ${COLOR_BORDER}; border-radius: 10px; overflow: hidden;">
+                <tr>
+                  <td style="background: ${COLOR_PRIMARY}; padding: 10px 16px;">
+                    <p style="margin: 0; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;">Contact</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 16px 18px;">
+                    <p style="margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: ${COLOR_FG};">${escapeHtml(fullName)}</p>
+                    <p style="margin: 0 0 6px 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Email :</span>
+                      <a href="mailto:${escapeHtml(data.email)}" style="color: ${COLOR_PRIMARY}; text-decoration: none; font-weight: 500;">${escapeHtml(data.email)}</a>
+                    </p>
+                    <p style="margin: 0 0 6px 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Téléphone :</span>
+                      <a href="tel:${escapeHtml(data.phone)}" style="color: ${COLOR_PRIMARY}; text-decoration: none; font-weight: 500;">${escapeHtml(data.phone)}</a>
+                    </p>
+                    <p style="margin: 8px 0 0 0; font-size: 13px; color: ${COLOR_MUTED};">
+                      Préfère être contacté·e par <strong style="color: ${COLOR_FG};">${escapeHtml(contactPrefLabel.toLowerCase())}</strong>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Location block -->
+          <tr>
+            <td style="padding: 16px 32px 0 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border: 1px solid ${COLOR_BORDER}; border-radius: 10px; overflow: hidden;">
+                <tr>
+                  <td style="background: ${COLOR_SECONDARY}; padding: 10px 16px;">
+                    <p style="margin: 0; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;">Lieu d'intervention</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 16px 18px;">
+                    ${
+                      data.address
+                        ? `<p style="margin: 0 0 4px 0; font-size: 15px; color: ${COLOR_FG};">${escapeHtml(data.address)}</p>`
+                        : ""
+                    }
+                    <p style="margin: 0; font-size: 15px; color: ${COLOR_FG}; font-weight: 600;">
+                      ${escapeHtml(data.postalCode)} ${escapeHtml(data.city)}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Project block -->
+          <tr>
+            <td style="padding: 16px 32px 0 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border: 1px solid ${COLOR_BORDER}; border-radius: 10px; overflow: hidden;">
+                <tr>
+                  <td style="background: ${COLOR_PRIMARY_DARK}; padding: 10px 16px;">
+                    <p style="margin: 0; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;">Projet</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 16px 18px;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Type :</span>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(projectTypeLabel)}</strong>
+                    </p>
+                    <p style="margin: 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Services :</span>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(servicesLabels) || "(aucun)"}</strong>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Description -->
+          ${
+            data.description
+              ? `
+          <tr>
+            <td style="padding: 16px 32px 0 32px;">
+              <p style="margin: 0 0 8px 0; color: ${COLOR_MUTED}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;">
+                Description du projet
+              </p>
+              <div style="background: ${COLOR_BG_SOFT}; padding: 16px 18px; border-left: 4px solid ${COLOR_PRIMARY}; border-radius: 4px;">
+                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: ${COLOR_FG};">${nl2br(data.description)}</p>
+              </div>
+            </td>
+          </tr>
+          `
+              : ""
+          }
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding: 28px 32px 24px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td align="center">
+                    <a href="mailto:${escapeHtml(data.email)}?subject=Re%20%3A%20votre%20demande%20de%20devis%20-%20Ouvertures%20Pro" style="display: inline-block; background: ${COLOR_PRIMARY}; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
+                      ✉️ Répondre à ${escapeHtml(data.firstName)}
+                    </a>
+                    <p style="margin: 12px 0 0 0; font-size: 12px; color: ${COLOR_MUTED};">
+                      ou appelez le <a href="tel:${escapeHtml(data.phone)}" style="color: ${COLOR_PRIMARY}; text-decoration: none; font-weight: 500;">${escapeHtml(data.phone)}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background: ${COLOR_FG}; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 6px 0; color: #ffffff; font-size: 14px; font-weight: 700; letter-spacing: 0.5px;">
+                Ouvertures Pro
+              </p>
+              <p style="margin: 0 0 10px 0; color: #b0b0b0; font-size: 12px;">
+                Fenêtres, portes, volets &amp; portails — Île-de-France
+              </p>
+              <p style="margin: 0; color: #b0b0b0; font-size: 12px; line-height: 1.6;">
+                22 bis rue des Malines, 91090 Lisses<br>
+                <a href="tel:+33160863754" style="color: #ffffff; text-decoration: none;">01 60 86 37 54</a> ·
+                <a href="https://wa.me/33771742083" style="color: #ffffff; text-decoration: none;">WhatsApp 07 71 74 20 83</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+        <p style="margin: 16px 0 0 0; font-size: 11px; color: ${COLOR_MUTED}; text-align: center;">
+          Email généré automatiquement depuis le formulaire devis du site
+        </p>
+
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
