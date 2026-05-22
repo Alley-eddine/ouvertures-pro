@@ -14,10 +14,40 @@ type Photo = {
   src: string;
   alt: string;
   caption: string;
-  category: "portail" | "store" | "porte" | "garage" | "fenetre";
+  category: "portail" | "store" | "porte" | "garage" | "fenetre" | "renovation";
 };
 
 const photos: Photo[] = [
+  {
+    src: "/images/galerie/renovation-maison-pierre-baies-vitrees-vert-menthe.webp",
+    alt: "Rénovation maison en pierres avec baies vitrées en aluminium vert menthe et fenêtres triangulaires sous combles",
+    caption: "Rénovation pierres + baies alu vert menthe",
+    category: "renovation",
+  },
+  {
+    src: "/images/galerie/portail-porte-garage-anthracite-camionnette-ouvertures-pro.webp",
+    alt: "Portail coulissant et porte de garage aluminium anthracite avec camionnette Ouvertures Pro à côté",
+    caption: "Portail + porte de garage anthracite, chantier Ouvertures Pro",
+    category: "portail",
+  },
+  {
+    src: "/images/galerie/porte-entree-vert-menthe-vitrage-fer-forge.webp",
+    alt: "Porte d'entrée aluminium vert menthe avec vitrage décoratif en fer forgé sur encadrement pierre",
+    caption: "Porte d'entrée vert menthe, vitrage fer forgé",
+    category: "porte",
+  },
+  {
+    src: "/images/galerie/renovation-maison-campagne-fenetres-vert-menthe.webp",
+    alt: "Rénovation complète maison de campagne en pierres avec fenêtres et lucarnes en aluminium vert menthe",
+    caption: "Rénovation maison de campagne, fenêtres alu vert menthe",
+    category: "renovation",
+  },
+  {
+    src: "/images/galerie/baie-vitree-triangulaire-aluminium-vert-menthe.webp",
+    alt: "Baie vitrée triangulaire sur mesure et baie coulissante en aluminium vert menthe sur façade en pierres",
+    caption: "Baie vitrée triangulaire sur mesure",
+    category: "fenetre",
+  },
   {
     src: "/images/galerie/portail-double-aluminium-anthracite-cloture.webp",
     alt: "Portail double battant aluminium anthracite avec clôture sur muret blanc",

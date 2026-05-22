@@ -64,7 +64,7 @@ export function ServicesSection() {
             Ce qu&apos;on pose chez vous
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-            Tout ce qui ferme et qui s&apos;ouvre.
+            Tout ce qui s&apos;ouvre et se ferme.
           </h2>
           <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
             Pose neuve, rénovation ou dépannage. On vient voir, on conseille, on fait un devis. Puis on pose.

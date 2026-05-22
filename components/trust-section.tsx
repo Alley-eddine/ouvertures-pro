@@ -23,7 +23,7 @@ const trustItems = [
   },
   {
     title: "Au métier",
-    description: "7 ans à Chilly-Mazarin, des centaines de chantiers en Île-de-France. Une équipe stable de trois artisans.",
+    description: "7 ans au service de l'Île-de-France, basés à Lisses (91). Une équipe stable de trois artisans.",
     count: 7,
     suffix: " ans",
   },

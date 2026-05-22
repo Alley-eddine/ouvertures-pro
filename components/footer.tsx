@@ -18,13 +18,13 @@ export function Footer() {
               className="mb-4 brightness-0 invert"
             />
             <p className="text-background/70 text-sm leading-relaxed">
-              Cédric Tamoud et son équipe — artisans menuisiers à Chilly-Mazarin,
+              Cédric Tamoud et son équipe — artisans menuisiers à Lisses,
               au service de l&apos;Île-de-France depuis 2018.
             </p>
             <div className="mt-4 space-y-2 text-sm">
               <p>
                 <span className="text-background/50">Tél:</span>{" "}
-                <span className="text-background">01 69 30 91 43 / 07 71 74 20 83</span>
+                <span className="text-background">01 60 86 37 54 / 07 71 74 20 83</span>
               </p>
               <p>
                 <span className="text-background/50">Email:</span>{" "}
@@ -33,7 +33,7 @@ export function Footer() {
               <p>
                 <span className="text-background/50">Adresse:</span>{" "}
                 <span className="text-background">
-                  31 Avenue Mazarin, 91380 Chilly-Mazarin
+                  22 bis rue des Malines, 91090 Lisses
                 </span>
               </p>
               <p className="pt-2">

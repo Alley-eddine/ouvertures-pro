@@ -41,6 +41,7 @@ export default function DevisPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleServiceChange = (serviceId: string, checked: boolean) => {
     if (checked) {
@@ -59,9 +60,27 @@ export default function DevisPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur lors de l'envoi");
+      }
+      setIsSubmitted(true);
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de l'envoi. Réessayez ou contactez-nous directement."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -318,6 +337,29 @@ export default function DevisPage() {
                 </div>
               </RadioGroup>
             </div>
+
+            {errorMsg && (
+              <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-800">
+                <p className="font-medium mb-1">L&apos;envoi a échoué</p>
+                <p>{errorMsg}</p>
+                <p className="mt-2 text-red-700">
+                  Vous pouvez aussi nous joindre par téléphone au{" "}
+                  <a href="tel:+33160863754" className="underline font-medium">
+                    01 60 86 37 54
+                  </a>{" "}
+                  ou par WhatsApp au{" "}
+                  <a
+                    href="https://wa.me/33771742083"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium"
+                  >
+                    07 71 74 20 83
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Devis gratuit fenêtres, portes et volets | Ouvertures Pro',
     description:
-      'Demandez votre devis gratuit en ligne. Étude personnalisée et réponse sous 24h par Cédric Tamoud et son équipe d\'artisans à Chilly-Mazarin.',
+      'Demandez votre devis gratuit en ligne. Étude personnalisée et réponse sous 24h par Cédric Tamoud et son équipe d\'artisans à Lisses (91).',
     url: '/devis',
   },
 };
