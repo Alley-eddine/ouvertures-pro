@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { EMAIL_LOGO_BASE64 } from "@/lib/email-logo-base64";
 
 const SERVICE_LABELS: Record<string, string> = {
   fenetres: "Fenêtres",
@@ -187,7 +188,7 @@ export async function POST(req: Request) {
           <!-- Brand header -->
           <tr>
             <td style="padding: 28px 32px 20px 32px; text-align: center; border-bottom: 4px solid ${COLOR_PRIMARY}; background: #ffffff;">
-              <img src="${SITE_URL}/images/logofinal.png" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block;">
+              <img src="data:image/png;base64,${EMAIL_LOGO_BASE64}" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block;">
             </td>
           </tr>
 
@@ -301,21 +302,26 @@ export async function POST(req: Request) {
               : ""
           }
 
-          <!-- CTA -->
+          <!-- CTA: 2 buttons (email + call) side by side -->
           <tr>
             <td style="padding: 28px 32px 24px 32px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto;">
                 <tr>
-                  <td align="center">
-                    <a href="mailto:${escapeHtml(data.email)}?subject=Re%20%3A%20votre%20demande%20de%20devis%20-%20Ouvertures%20Pro" style="display: inline-block; background: ${COLOR_PRIMARY}; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-                      ✉️ Répondre à ${escapeHtml(data.firstName)}
+                  <td style="padding: 0 6px 12px 6px;" align="center">
+                    <a href="mailto:${escapeHtml(data.email)}?subject=Re%20%3A%20votre%20demande%20de%20devis%20-%20Ouvertures%20Pro" style="display: inline-block; background: ${COLOR_PRIMARY}; color: #ffffff; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; white-space: nowrap;">
+                      ✉️ Répondre par email
                     </a>
-                    <p style="margin: 12px 0 0 0; font-size: 12px; color: ${COLOR_MUTED};">
-                      ou appelez le <a href="tel:${escapeHtml(data.phone)}" style="color: ${COLOR_PRIMARY}; text-decoration: none; font-weight: 500;">${escapeHtml(data.phone)}</a>
-                    </p>
+                  </td>
+                  <td style="padding: 0 6px 12px 6px;" align="center">
+                    <a href="tel:${escapeHtml(data.phone)}" style="display: inline-block; background: ${COLOR_FG}; color: #ffffff; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; white-space: nowrap;">
+                      📞 Appeler ${escapeHtml(data.firstName)}
+                    </a>
                   </td>
                 </tr>
               </table>
+              <p style="margin: 4px 0 0 0; font-size: 12px; color: ${COLOR_MUTED}; text-align: center;">
+                ${escapeHtml(data.phone)}
+              </p>
             </td>
           </tr>
 
