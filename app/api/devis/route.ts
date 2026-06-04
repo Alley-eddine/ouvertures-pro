@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { EMAIL_LOGO_BASE64 } from "@/lib/email-logo-base64";
+
+// Logo affiché dans l'email — URL hostée (data: URI / base64 strippés par Gmail).
+// La prod tourne sur ouverture-pro.fr, le logo est servi par Next.
+const LOGO_URL = "https://ouverture-pro.fr/images/logofinal.png";
 
 const SERVICE_LABELS: Record<string, string> = {
   fenetres: "Fenêtres",
@@ -111,19 +114,25 @@ export async function POST(req: Request) {
   // Lazy-fail with a clear message if env vars are missing — easier debug than a 500.
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL; // e.g. "Ouvertures Pro <devis@ouverture-pro.fr>"
-  const to = process.env.DEVIS_TO_EMAIL; // e.g. "contact@ouverture-pro.fr"
+  const toRaw = process.env.DEVIS_TO_EMAIL; // single email OR comma-separated list
 
-  if (!apiKey || !from || !to) {
+  if (!apiKey || !from || !toRaw) {
     console.error("[devis] Missing env vars", {
       hasKey: !!apiKey,
       hasFrom: !!from,
-      hasTo: !!to,
+      hasTo: !!toRaw,
     });
     return NextResponse.json(
       { error: "Email service not configured" },
       { status: 500 }
     );
   }
+
+  // Support multi-recipient: "a@x.com, b@y.com" → ["a@x.com", "b@y.com"]
+  const to = toRaw
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
 
   let body: unknown;
   try {
@@ -188,7 +197,10 @@ export async function POST(req: Request) {
           <!-- Brand header -->
           <tr>
             <td style="padding: 28px 32px 20px 32px; text-align: center; border-bottom: 4px solid ${COLOR_PRIMARY}; background: #ffffff;">
-              <img src="data:image/png;base64,${EMAIL_LOGO_BASE64}" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block;">
+              <img src="${LOGO_URL}" alt="Ouvertures Pro" width="200" style="max-width: 200px; height: auto; display: inline-block; border: 0;">
+              <!--[if !mso]><!-->
+              <div style="font-size: 0; line-height: 0; mso-line-height-rule: exactly;">&nbsp;</div>
+              <!--<![endif]-->
             </td>
           </tr>
 
@@ -358,7 +370,7 @@ export async function POST(req: Request) {
     const resend = new Resend(apiKey);
     const { data: sent, error } = await resend.emails.send({
       from,
-      to: [to],
+      to,
       replyTo: data.email,
       subject,
       text,
