@@ -2,22 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, LegalRow, LegalSection } from "@/components/legal-layout";
 
-// ⚠️ INFOS À COMPLÉTER depuis le PDF d'export :
-//   - SIRET / SIREN
-//   - Numéro RCS et ville
-//   - Capital social
-//   - Forme juridique exacte (SARL, EURL, etc.)
-//   - Numéro TVA intracommunautaire
-// Cherche-les dans Export_Portail_Data_OUVERTURES_PRO_*.pdf
+// Données extraites de l'attestation d'immatriculation RNE (INPI) du 5 juin 2026.
+// TVA intra calculée selon l'algorithme officiel : FR + clé(2c) + SIREN(9c)
+// Clé = (12 + 3 × (SIREN mod 97)) mod 97  →  pour SIREN 842272510 : clé = 37
 const LEGAL_INFO = {
   raisonSociale: "OUVERTURES PRO",
-  formeJuridique: "SARL", // À VÉRIFIER
-  capital: "[À COMPLÉTER : montant du capital social] €",
+  formeJuridique:
+    "Société à responsabilité limitée à associé unique (SARLU / EURL)",
+  capital: "5 000 €",
   siegeSocial: "22 bis rue des Malines, 91090 Lisses",
-  siret: "[À COMPLÉTER : 14 chiffres du SIRET]",
-  rcs: "[À COMPLÉTER : numéro RCS] — RCS Évry", // À vérifier la ville du greffe
-  tva: "[À COMPLÉTER : FR + 11 chiffres]",
-  directeurPublication: "Cédric Tamoud",
+  siren: "842 272 510",
+  siret: "842 272 510 00038",
+  rcs: "842 272 510 R.C.S. Évry",
+  rne: "Immatriculée au Registre National des Entreprises (RNE) le 12/09/2018",
+  tva: "FR37 842 272 510",
+  codeApe: "4332A — Travaux de menuiserie bois et PVC",
+  directeurPublication: "Cédric Tamoud, gérant",
   email: "contact@ouverture-pro.fr",
   telephone: "01 60 86 37 54",
 };
@@ -44,9 +44,11 @@ export default function MentionsLegalesPage() {
         <LegalRow label="Forme juridique" value={LEGAL_INFO.formeJuridique} />
         <LegalRow label="Capital social" value={LEGAL_INFO.capital} />
         <LegalRow label="Siège social" value={LEGAL_INFO.siegeSocial} />
-        <LegalRow label="SIRET" value={LEGAL_INFO.siret} />
+        <LegalRow label="SIREN" value={LEGAL_INFO.siren} />
+        <LegalRow label="SIRET (siège)" value={LEGAL_INFO.siret} />
         <LegalRow label="RCS" value={LEGAL_INFO.rcs} />
         <LegalRow label="TVA intracommunautaire" value={LEGAL_INFO.tva} />
+        <LegalRow label="Code APE" value={LEGAL_INFO.codeApe} />
         <LegalRow
           label="Directeur de la publication"
           value={LEGAL_INFO.directeurPublication}
@@ -73,6 +75,9 @@ export default function MentionsLegalesPage() {
             </a>
           }
         />
+        <p className="text-sm text-muted-foreground pt-3 italic">
+          {LEGAL_INFO.rne}.
+        </p>
       </LegalSection>
 
       <LegalSection title="2. Hébergeur du site">
