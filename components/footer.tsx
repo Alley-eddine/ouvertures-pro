@@ -90,11 +90,17 @@ export function Footer() {
         <div className="border-t border-background/10 pt-8 text-center text-sm text-background/50">
           <p>
             © {new Date().getFullYear()} Ouvertures Pro. Tous droits réservés.{" "}
-            <Link href="#" className="hover:text-background transition-colors">
+            <Link
+              href="/mentions-legales"
+              className="hover:text-background transition-colors"
+            >
               Mentions Légales
             </Link>{" "}
             |{" "}
-            <Link href="#" className="hover:text-background transition-colors">
+            <Link
+              href="/politique-confidentialite"
+              className="hover:text-background transition-colors"
+            >
               Politique de Confidentialité
             </Link>
           </p>
