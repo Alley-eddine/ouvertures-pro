@@ -1,14 +1,14 @@
 import type { MetadataRoute } from 'next';
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://ouvertures-pro.vercel.app');
+// URL de prod hardcodee — pas d'env var pour eviter les surprises
+// (ex: NEXT_PUBLIC_SITE_URL mal renseignee qui prefixe toutes les URLs).
+const SITE_URL = 'https://ouverture-pro.fr';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   return [
     {
-      url: SITE_URL,
+      url: `${SITE_URL}/`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 1,
