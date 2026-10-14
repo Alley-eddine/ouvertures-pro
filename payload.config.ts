@@ -7,6 +7,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { fr } from '@payloadcms/translations/languages/fr'
 import { buildConfig } from 'payload'
 
+import { Appels } from './collections/Appels'
 import { Leads } from './collections/Leads'
 import { Users } from './collections/Users'
 import { migrations } from './migrations'
@@ -26,7 +27,7 @@ export default buildConfig({
       titleSuffix: '— Ouvertures Pro',
     },
   },
-  collections: [Leads, Users],
+  collections: [Leads, Appels, Users],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? '',
   typescript: {

@@ -16,7 +16,7 @@ export type Attribution = {
   /** Libellé lisible, affiché tel quel dans l'email de notification. */
   source: string;
   /** Clé courte et stable, pour les filtres et les statistiques. */
-  sourceKey: "google-ads" | "seo" | "social" | "ia" | "referent" | "direct" | "campagne";
+  sourceKey: "google-ads" | "gbp" | "seo" | "social" | "ia" | "referent" | "direct" | "campagne";
   campagne?: string;
   motCle?: string;
   gclid?: string;
@@ -80,6 +80,12 @@ export function deduireProvenance(href: string, referent: string): Attribution {
   // Google Ads : le gclid est posé par Google sur chaque clic d'annonce.
   if (gclid || (payant && utmSource.includes("google"))) {
     return { ...base, source: "Google Ads", sourceKey: "google-ads" };
+  }
+
+  // Fiche Google : le lien « Site Web » de la fiche est balisé
+  // ?utm_source=google&utm_medium=organic&utm_campaign=gbp
+  if (campagne?.toLowerCase() === "gbp" || ["gbp", "gmb", "google-business"].includes(utmSource)) {
+    return { ...base, source: "Fiche Google", sourceKey: "gbp" };
   }
 
   // Autre campagne balisée (Meta Ads, emailing, QR code sur un flyer…).

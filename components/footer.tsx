@@ -24,11 +24,22 @@ export function Footer() {
             <div className="mt-4 space-y-2 text-sm">
               <p>
                 <span className="text-background/50">Tél:</span>{" "}
-                <span className="text-background">01 60 86 37 54 / 07 71 74 20 83</span>
+                <a href="tel:+33160863754" className="text-background hover:text-primary transition-colors">
+                  01 60 86 37 54
+                </a>
+                {" / "}
+                <a href="tel:+33771742083" className="text-background hover:text-primary transition-colors">
+                  07 71 74 20 83
+                </a>
               </p>
               <p>
                 <span className="text-background/50">Email:</span>{" "}
-                <span className="text-background">contact@ouvertures-pro.fr</span>
+                <a
+                  href="mailto:contact@ouvertures-pro.fr"
+                  className="text-background hover:text-primary transition-colors"
+                >
+                  contact@ouvertures-pro.fr
+                </a>
               </p>
               <p>
                 <span className="text-background/50">Adresse:</span>{" "}

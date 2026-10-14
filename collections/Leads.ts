@@ -59,7 +59,13 @@ export const Leads: CollectionConfig = {
               options: [
                 { label: 'Page devis', value: 'devis' },
                 { label: "Page d'accueil", value: 'accueil' },
+                { label: 'Saisie manuelle (appel, visite…)', value: 'manuel' },
               ],
+              admin: {
+                description:
+                  'Pour un client qui a appelé ou s’est présenté : choisissez « Saisie manuelle » ' +
+                  'et renseignez son canal dans l’onglet Provenance.',
+              },
             },
             {
               type: 'row',
@@ -71,7 +77,9 @@ export const Leads: CollectionConfig = {
             {
               type: 'row',
               fields: [
-                { name: 'email', label: 'Email', type: 'email', required: true, index: true },
+                // Facultatif : au téléphone on n'a souvent que le nom et le numéro.
+                // Les formulaires du site, eux, exigent toujours un email.
+                { name: 'email', label: 'Email', type: 'email', index: true },
                 { name: 'phone', label: 'Téléphone', type: 'text', required: true },
               ],
             },
@@ -184,14 +192,20 @@ export const Leads: CollectionConfig = {
               index: true,
               options: [
                 { label: 'Google Ads', value: 'google-ads' },
+                { label: 'Fiche Google', value: 'gbp' },
                 { label: 'Référencement naturel', value: 'seo' },
                 { label: 'Réseaux sociaux', value: 'social' },
                 { label: 'Assistant IA', value: 'ia' },
                 { label: 'Site référent', value: 'referent' },
                 { label: 'Autre campagne', value: 'campagne' },
                 { label: 'Accès direct', value: 'direct' },
+                { label: 'Bouche-à-oreille', value: 'bouche-a-oreille' },
               ],
-              admin: { readOnly: true },
+              admin: {
+                description:
+                  'Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, ' +
+                  'demandez au client comment il vous a connu.',
+              },
             },
             {
               name: 'source',

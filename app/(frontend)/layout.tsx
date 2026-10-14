@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AttributionTracker } from '@/components/attribution-tracker'
+import { BarreAppelMobile } from '@/components/barre-appel-mobile'
 // Les styles du site restent dans (frontend) : l'admin Payload a les siens,
 // et le Tailwind du site ne doit pas déborder dessus.
 import '../globals.css'
@@ -141,6 +142,7 @@ export default function RootLayout({
         />
         <AttributionTracker />
         {children}
+        <BarreAppelMobile />
         <Analytics />
       </body>
     </html>

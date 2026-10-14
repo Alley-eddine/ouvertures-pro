@@ -19,7 +19,7 @@ export function WhatsAppButton() {
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all duration-500 hover:scale-110 whatsapp-pulse ${
+      className={`fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary rounded-full hidden md:flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all duration-500 hover:scale-110 whatsapp-pulse ${
         show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
       aria-label="Contactez-nous sur WhatsApp"

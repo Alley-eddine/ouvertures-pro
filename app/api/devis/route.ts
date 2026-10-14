@@ -182,7 +182,7 @@ function choix<T extends string>(v: string | undefined, autorises: readonly T[])
   return autorises.includes(v as T) ? (v as T) : undefined;
 }
 
-const SOURCE_KEYS = ["google-ads", "seo", "social", "ia", "referent", "campagne", "direct"] as const;
+const SOURCE_KEYS = ["google-ads", "gbp", "seo", "social", "ia", "referent", "campagne", "direct"] as const;
 const SERVICES = ["fenetres", "portes", "volets", "reparation"] as const;
 
 /**

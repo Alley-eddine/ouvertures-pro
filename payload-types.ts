@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     leads: Lead;
+    appels: Appel;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -77,6 +78,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     leads: LeadsSelect<false> | LeadsSelect<true>;
+    appels: AppelsSelect<false> | AppelsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -126,10 +128,13 @@ export interface UserAuthOperations {
 export interface Lead {
   id: number;
   nomComplet?: string | null;
-  origine: 'devis' | 'accueil';
+  /**
+   * Pour un client qui a appelé ou s’est présenté : choisissez « Saisie manuelle » et renseignez son canal dans l’onglet Provenance.
+   */
+  origine: 'devis' | 'accueil' | 'manuel';
   firstName: string;
   lastName?: string | null;
-  email: string;
+  email?: string | null;
   phone: string;
   address?: string | null;
   postalCode?: string | null;
@@ -142,7 +147,11 @@ export interface Lead {
   echeance?: ('des-que-possible' | '1-3-mois' | '3-6-mois' | 'renseignement') | null;
   situation?: ('proprietaire' | 'locataire' | 'copropriete') | null;
   nbOuvertures?: ('1-2' | '3-5' | '6-10' | 'plus-10') | null;
-  sourceKey?: ('google-ads' | 'seo' | 'social' | 'ia' | 'referent' | 'campagne' | 'direct') | null;
+  /**
+   * Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, demandez au client comment il vous a connu.
+   */
+  sourceKey?:
+    ('google-ads' | 'gbp' | 'seo' | 'social' | 'ia' | 'referent' | 'campagne' | 'direct' | 'bouche-a-oreille') | null;
   source?: string | null;
   campagne?: string | null;
   motCle?: string | null;
@@ -158,6 +167,26 @@ export interface Lead {
   internalNotes?: string | null;
   submittedAt: string;
   userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Taps sur un numéro ou sur WhatsApp depuis le site. Un clic ne garantit pas que l'appel a abouti : c'est un indicateur de volume par canal, pas une liste de clients.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "appels".
+ */
+export interface Appel {
+  id: number;
+  type: 'telephone' | 'whatsapp';
+  numero?: string | null;
+  sourceKey?: ('google-ads' | 'gbp' | 'seo' | 'social' | 'ia' | 'referent' | 'campagne' | 'direct') | null;
+  source?: string | null;
+  campagne?: string | null;
+  motCle?: string | null;
+  gclid?: string | null;
+  page?: string | null;
+  cliqueLe: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -215,6 +244,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'leads';
         value: number | Lead;
+      } | null)
+    | ({
+        relationTo: 'appels';
+        value: number | Appel;
       } | null)
     | ({
         relationTo: 'users';
@@ -297,6 +330,23 @@ export interface LeadsSelect<T extends boolean = true> {
   internalNotes?: T;
   submittedAt?: T;
   userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "appels_select".
+ */
+export interface AppelsSelect<T extends boolean = true> {
+  type?: T;
+  numero?: T;
+  sourceKey?: T;
+  source?: T;
+  campagne?: T;
+  motCle?: T;
+  gclid?: T;
+  page?: T;
+  cliqueLe?: T;
   updatedAt?: T;
   createdAt?: T;
 }
