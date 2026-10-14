@@ -21,3 +21,5 @@ node_modules/
 
 # Windows shell crash dumps
 *.stackdump
+.vercel
+.env*

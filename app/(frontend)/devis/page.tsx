@@ -11,6 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { provenancePourEnvoi } from "@/lib/attribution";
+import { cn } from "@/lib/utils";
 
 const services = [
   { id: "fenetres", label: "Fenêtres" },
@@ -25,6 +27,82 @@ const projectTypes = [
   { id: "remplacement", label: "Remplacement à l'identique" },
 ];
 
+// Qualification : un seul tap par question, aucune saisie, tout est facultatif.
+// Ces réponses permettent de rappeler en priorité les projets les plus avancés.
+const budgets = [
+  { id: "moins-2000", label: "Moins de 2 000 €" },
+  { id: "2000-5000", label: "2 000 à 5 000 €" },
+  { id: "5000-10000", label: "5 000 à 10 000 €" },
+  { id: "plus-10000", label: "Plus de 10 000 €" },
+  { id: "inconnu", label: "Je ne sais pas encore" },
+];
+
+const echeances = [
+  { id: "des-que-possible", label: "Dès que possible" },
+  { id: "1-3-mois", label: "Sous 1 à 3 mois" },
+  { id: "3-6-mois", label: "Sous 3 à 6 mois" },
+  { id: "renseignement", label: "Je me renseigne" },
+];
+
+const situations = [
+  { id: "proprietaire", label: "Propriétaire" },
+  { id: "locataire", label: "Locataire" },
+  { id: "copropriete", label: "Copropriété" },
+];
+
+const nbOuverturesOptions = [
+  { id: "1-2", label: "1 à 2" },
+  { id: "3-5", label: "3 à 5" },
+  { id: "6-10", label: "6 à 10" },
+  { id: "plus-10", label: "Plus de 10" },
+];
+
+/** Groupe de choix en pastilles : un tap suffit, et retaper désélectionne. */
+function ChoixPastilles({
+  id,
+  titre,
+  options,
+  valeur,
+  onChange,
+}: {
+  id: string;
+  titre: string;
+  options: { id: string; label: string }[];
+  valeur: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <p id={`${id}-label`} className="font-medium text-foreground mb-3">
+        {titre}
+      </p>
+      <div role="group" aria-labelledby={`${id}-label`} className="flex flex-wrap gap-2">
+        {options.map((o) => {
+          const actif = valeur === o.id;
+          return (
+            <button
+              key={o.id}
+              id={`${id}-${o.id}`}
+              type="button"
+              aria-pressed={actif}
+              onClick={() => onChange(actif ? "" : o.id)}
+              className={cn(
+                "px-4 py-2 rounded-lg border text-sm transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                actif
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+              )}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function DevisPage() {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -38,6 +116,10 @@ export default function DevisPage() {
     services: [] as string[],
     description: "",
     preferredContact: "email",
+    budget: "",
+    echeance: "",
+    situation: "",
+    nbOuvertures: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -65,7 +147,11 @@ export default function DevisPage() {
       const res = await fetch("/api/devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          origine: "Page devis",
+          provenance: provenancePourEnvoi(),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -286,6 +372,48 @@ export default function DevisPage() {
                     </Label>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Qualification — facultatif, un tap par question */}
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-1">
+                Pour préparer votre devis
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Facultatif, mais ces quelques réponses nous permettent de vous
+                rappeler avec une estimation déjà sérieuse plutôt qu&apos;avec
+                des questions.
+              </p>
+              <div className="space-y-6">
+                <ChoixPastilles
+                  id="budget"
+                  titre="Votre budget approximatif"
+                  options={budgets}
+                  valeur={formData.budget}
+                  onChange={(v) => setFormData({ ...formData, budget: v })}
+                />
+                <ChoixPastilles
+                  id="echeance"
+                  titre="Quand souhaitez-vous faire les travaux ?"
+                  options={echeances}
+                  valeur={formData.echeance}
+                  onChange={(v) => setFormData({ ...formData, echeance: v })}
+                />
+                <ChoixPastilles
+                  id="situation"
+                  titre="Vous êtes"
+                  options={situations}
+                  valeur={formData.situation}
+                  onChange={(v) => setFormData({ ...formData, situation: v })}
+                />
+                <ChoixPastilles
+                  id="nb-ouvertures"
+                  titre="Nombre d'ouvertures concernées"
+                  options={nbOuverturesOptions}
+                  valeur={formData.nbOuvertures}
+                  onChange={(v) => setFormData({ ...formData, nbOuvertures: v })}
+                />
               </div>
             </div>
 
