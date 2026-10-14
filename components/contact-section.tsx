@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send, CheckCircle } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { provenancePourEnvoi } from "@/lib/attribution";
+import { signalerConversion } from "@/lib/conversions";
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -50,6 +51,7 @@ export function ContactSection() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de l'envoi");
       }
+      signalerConversion("contact");
       setIsSubmitted(true);
       setFormData({ name: "", email: "", phone: "", message: "" });
     } catch (err) {

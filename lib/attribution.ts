@@ -10,7 +10,15 @@
  * annonce puis navigue, c'est bien l'annonce qui a produit la demande.
  */
 
+import { publiciteAcceptee } from "@/lib/consentement";
+
 const STORAGE_KEY = "op_attribution";
+/**
+ * Avec l'accord du visiteur, la provenance est gardée 90 jours : quelqu'un qui
+ * clique sur une annonce lundi et revient jeudi en tapant l'adresse reste
+ * attribué à l'annonce. Sans accord, elle ne dure que le temps de l'onglet.
+ */
+const DUREE_LONGUE_MS = 90 * 24 * 60 * 60 * 1000;
 
 export type Attribution = {
   /** Libellé lisible, affiché tel quel dans l'email de notification. */
@@ -125,21 +133,62 @@ export function capturerProvenance(): void {
       !stockee ||
       // un nouveau clic publicitaire prime sur une provenance plus ancienne
       (actuelle.sourceKey === "google-ads" && stockee.sourceKey !== "google-ads");
-    if (remplace) {
-      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(actuelle));
-    }
+    ecrire(remplace || !stockee ? actuelle : stockee);
   } catch {
     // Navigation privée, stockage bloqué : on continue sans provenance.
   }
 }
 
+function ecrire(a: Attribution): void {
+  const json = JSON.stringify(a);
+  window.sessionStorage.setItem(STORAGE_KEY, json);
+  if (publiciteAcceptee()) window.localStorage.setItem(STORAGE_KEY, json);
+}
+
+/** Provenance longue, seulement si le visiteur a accepté et qu'elle a moins de 90 jours. */
+function lireLongue(): Attribution | null {
+  if (!publiciteAcceptee()) return null;
+  const brut = window.localStorage.getItem(STORAGE_KEY);
+  if (!brut) return null;
+  const a = JSON.parse(brut) as Attribution;
+  const age = a.vuLe ? Date.now() - new Date(a.vuLe).getTime() : Infinity;
+  if (age > DUREE_LONGUE_MS) {
+    window.localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+  return a;
+}
+
 export function lireProvenance(): Attribution | null {
   if (typeof window === "undefined") return null;
   try {
+    // La provenance longue est la plus ancienne : c'est elle qui a amené le visiteur.
+    const longue = lireLongue();
+    if (longue) return longue;
     const brut = window.sessionStorage.getItem(STORAGE_KEY);
     return brut ? (JSON.parse(brut) as Attribution) : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * À appeler quand le visiteur fait son choix : on garde la provenance 90 jours
+ * s'il accepte, et on efface toute trace longue s'il refuse ou se rétracte.
+ */
+export function appliquerConsentementProvenance(publicite: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (!publicite) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    const brut = window.sessionStorage.getItem(STORAGE_KEY);
+    if (brut && !window.localStorage.getItem(STORAGE_KEY)) {
+      window.localStorage.setItem(STORAGE_KEY, brut);
+    }
+  } catch {
+    // Stockage bloqué : rien à faire.
   }
 }
 

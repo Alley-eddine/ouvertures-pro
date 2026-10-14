@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { capturerProvenance, provenancePourEnvoi } from "@/lib/attribution";
+import {
+  appliquerConsentementProvenance,
+  capturerProvenance,
+  provenancePourEnvoi,
+} from "@/lib/attribution";
+import { EVENEMENT_CHOIX } from "@/lib/consentement";
+import { signalerConversion } from "@/lib/conversions";
 
 function typeDeLien(href: string): "telephone" | "whatsapp" | null {
   if (href.startsWith("tel:")) return "telephone";
@@ -24,6 +30,8 @@ export function AttributionTracker() {
       const href = lien.getAttribute("href") ?? "";
       const type = typeDeLien(href);
       if (!type) return;
+
+      signalerConversion(type === "telephone" ? "appel" : "whatsapp");
 
       const corps = JSON.stringify({
         type,
@@ -49,8 +57,16 @@ export function AttributionTracker() {
       }
     }
 
+    function auChoix(e: Event) {
+      appliquerConsentementProvenance((e as CustomEvent<{ publicite: boolean }>).detail?.publicite === true);
+    }
+
     document.addEventListener("click", auClic, { capture: true });
-    return () => document.removeEventListener("click", auClic, { capture: true });
+    window.addEventListener(EVENEMENT_CHOIX, auChoix);
+    return () => {
+      document.removeEventListener("click", auClic, { capture: true });
+      window.removeEventListener(EVENEMENT_CHOIX, auChoix);
+    };
   }, []);
 
   return null;

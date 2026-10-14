@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook } from "lucide-react";
+import { LienGererCookies } from "@/components/lien-gerer-cookies";
 import { Button } from "@/components/ui/button";
 
 export function Footer() {
@@ -114,6 +115,7 @@ export function Footer() {
             >
               Politique de Confidentialité
             </Link>
+            <LienGererCookies className="hover:text-background transition-colors" />
           </p>
         </div>
       </div>

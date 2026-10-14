@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { provenancePourEnvoi } from "@/lib/attribution";
+import { signalerConversion } from "@/lib/conversions";
 import { cn } from "@/lib/utils";
 
 const services = [
@@ -157,6 +158,7 @@ export default function DevisPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de l'envoi");
       }
+      signalerConversion("devis");
       setIsSubmitted(true);
     } catch (err) {
       setErrorMsg(
