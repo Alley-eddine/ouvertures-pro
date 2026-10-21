@@ -9,12 +9,14 @@ import { Mail, Phone, MapPin, Send, CheckCircle } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
+import { GROUPES_SERVICES } from "@/lib/catalogue-projet";
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
+    service: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +44,7 @@ export function ContactSection() {
           email: formData.email,
           phone: formData.phone,
           description: formData.message,
-          services: [],
+          services: formData.service ? [formData.service] : [],
           origine: "Accueil",
           provenance: provenancePourEnvoi(),
         }),
@@ -53,7 +55,7 @@ export function ContactSection() {
       }
       signalerConversion("contact");
       setIsSubmitted(true);
-      setFormData({ name: "", email: "", phone: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", service: "", message: "" });
     } catch (err) {
       setErrorMsg(
         err instanceof Error
@@ -246,6 +248,29 @@ export function ContactSection() {
                       className="input-animated"
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service">
+                    Votre projet concerne{" "}
+                    <span className="font-normal text-muted-foreground">(facultatif)</span>
+                  </Label>
+                  <select
+                    id="service"
+                    value={formData.service}
+                    onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                    className="input-animated h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="">Choisir…</option>
+                    {GROUPES_SERVICES.map((groupe) => (
+                      <optgroup key={groupe.titre} label={groupe.titre}>
+                        {groupe.options.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>

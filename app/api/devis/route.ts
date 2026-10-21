@@ -2,17 +2,22 @@ import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 import { Resend } from "resend";
 import config from "@payload-config";
+import {
+  CONNAISSANCES,
+  MATERIAUX,
+  MOTIVATIONS,
+  SERVICES,
+  filtrer,
+  libelle,
+  type ValeurConnaissance,
+  type ValeurMateriau,
+  type ValeurMotivation,
+  type ValeurService,
+} from "@/lib/catalogue-projet";
 
 // Logo affiché dans l'email — URL hostée (data: URI / base64 strippés par Gmail).
 // La prod tourne sur ouverture-pro.fr, le logo est servi par Next.
 const LOGO_URL = "https://ouverture-pro.fr/images/logofinal.png";
-
-const SERVICE_LABELS: Record<string, string> = {
-  fenetres: "Fenêtres",
-  portes: "Portes",
-  volets: "Volets",
-  reparation: "Réparation",
-};
 
 const PROJECT_TYPE_LABELS: Record<string, string> = {
   neuf: "Construction neuve",
@@ -82,7 +87,10 @@ type DevisPayload = {
   city: string;
   postalCode: string;
   projectType: string;
-  services: string[];
+  services: ValeurService[];
+  motivations: ValeurMotivation[];
+  materiaux: ValeurMateriau[];
+  sourceDeclaree: ValeurConnaissance | "";
   description: string;
   preferredContact: string;
   budget: string;
@@ -142,7 +150,10 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
       city: texte(b.city),
       postalCode: texte(b.postalCode),
       projectType: texte(b.projectType),
-      services: (b.services as unknown[]).filter((s): s is string => typeof s === "string"),
+      services: filtrer(SERVICES, b.services),
+      motivations: filtrer(MOTIVATIONS, b.motivations),
+      materiaux: filtrer(MATERIAUX, b.materiaux),
+      sourceDeclaree: filtrer(CONNAISSANCES, [b.sourceDeclaree])[0] ?? "",
       description: typeof b.description === "string" ? b.description.trim() : "",
       preferredContact:
         typeof b.preferredContact === "string" ? b.preferredContact.trim() : "email",
@@ -183,7 +194,6 @@ function choix<T extends string>(v: string | undefined, autorises: readonly T[])
 }
 
 const SOURCE_KEYS = ["google-ads", "gbp", "seo", "social", "ia", "referent", "campagne", "direct"] as const;
-const SERVICES = ["fenetres", "portes", "volets", "reparation"] as const;
 
 /**
  * Enregistre la demande dans l'admin Payload. Ne lève jamais : si la base est
@@ -207,9 +217,10 @@ async function enregistrerLead(data: DevisPayload, userAgent: string | null): Pr
         city: data.city || undefined,
         preferredContact: choix(data.preferredContact, ["email", "phone", "whatsapp"] as const),
         projectType: choix(data.projectType, ["neuf", "renovation", "remplacement"] as const),
-        services: data.services.filter((s): s is (typeof SERVICES)[number] =>
-          (SERVICES as readonly string[]).includes(s)
-        ),
+        services: data.services,
+        motivations: data.motivations,
+        materiaux: data.materiaux,
+        sourceDeclaree: data.sourceDeclaree || undefined,
         description: data.description || undefined,
         budget: choix(data.budget, ["moins-2000", "2000-5000", "5000-10000", "plus-10000", "inconnu"] as const),
         echeance: choix(data.echeance, ["des-que-possible", "1-3-mois", "3-6-mois", "renseignement"] as const),
@@ -288,7 +299,10 @@ export async function POST(req: Request) {
     .map((e) => e.trim())
     .filter(Boolean);
 
-  const servicesLabels = data.services.map((s) => SERVICE_LABELS[s] ?? s).join(", ");
+  const servicesLabels = data.services.map((s) => libelle(SERVICES, s)).join(", ");
+  const motivationsLabels = data.motivations.map((m) => libelle(MOTIVATIONS, m)).join(", ");
+  const materiauxLabels = data.materiaux.map((m) => libelle(MATERIAUX, m)).join(", ");
+  const sourceDeclareeLabel = data.sourceDeclaree ? libelle(CONNAISSANCES, data.sourceDeclaree) : "";
   const projectTypeLabel =
     PROJECT_TYPE_LABELS[data.projectType] ?? data.projectType ?? "";
   const lieuLabel =
@@ -309,6 +323,7 @@ export async function POST(req: Request) {
     data.provenance?.campagne ? `Campagne : ${data.provenance.campagne}` : "",
     data.provenance?.motCle ? `Mot-clé : ${data.provenance.motCle}` : "",
     data.provenance?.gclid ? "Clic publicitaire identifié (gclid)" : "",
+    sourceDeclareeLabel ? `Selon le client : ${sourceDeclareeLabel}` : "",
   ].filter(Boolean);
 
   const resumeSubject = [
@@ -391,6 +406,8 @@ export async function POST(req: Request) {
     "── Projet ──",
     `Type        : ${projectTypeLabel}`,
     `Services    : ${servicesLabels || "(aucun)"}`,
+    ...(motivationsLabels ? [`Pourquoi    : ${motivationsLabels}`] : []),
+    ...(materiauxLabels ? [`Matériaux   : ${materiauxLabels}`] : []),
     "",
     "── Description ──",
     data.description || "(aucune description)",
@@ -512,7 +529,23 @@ ${blocProvenance}
                     <p style="margin: 0; font-size: 14px;">
                       <span style="color: ${COLOR_MUTED};">Services :</span>
                       <strong style="color: ${COLOR_FG};">${escapeHtml(servicesLabels) || "(aucun)"}</strong>
-                    </p>
+                    </p>${
+                      motivationsLabels
+                        ? `
+                    <p style="margin: 8px 0 0 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Pourquoi :</span>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(motivationsLabels)}</strong>
+                    </p>`
+                        : ""
+                    }${
+                      materiauxLabels
+                        ? `
+                    <p style="margin: 8px 0 0 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Matériaux :</span>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(materiauxLabels)}</strong>
+                    </p>`
+                        : ""
+                    }
                   </td>
                 </tr>
               </table>

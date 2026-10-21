@@ -8,19 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
+import { CONNAISSANCES, GROUPES_SERVICES, MATERIAUX, MOTIVATIONS } from "@/lib/catalogue-projet";
 import { cn } from "@/lib/utils";
-
-const services = [
-  { id: "fenetres", label: "Fenêtres" },
-  { id: "portes", label: "Portes" },
-  { id: "volets", label: "Volets" },
-  { id: "reparation", label: "Réparation" },
-];
 
 const projectTypes = [
   { id: "neuf", label: "Construction neuve" },
@@ -58,6 +51,60 @@ const nbOuverturesOptions = [
   { id: "plus-10", label: "Plus de 10" },
 ];
 
+const classePastille = (actif: boolean) =>
+  cn(
+    "px-4 py-2 rounded-lg border text-sm transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    actif
+      ? "border-primary bg-primary/10 text-primary font-medium"
+      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+  );
+
+/** Variante à choix multiples : chaque tap ajoute ou retire l'option. */
+function ChoixMultiples({
+  id,
+  titre,
+  aide,
+  options,
+  valeurs,
+  onChange,
+}: {
+  id: string;
+  titre: string;
+  aide?: string;
+  options: readonly { value: string; label: string }[];
+  valeurs: string[];
+  onChange: (v: string[]) => void;
+}) {
+  return (
+    <div>
+      <p id={`${id}-label`} className="font-medium text-foreground mb-1">
+        {titre}
+      </p>
+      {aide && <p className="text-sm text-muted-foreground mb-3">{aide}</p>}
+      <div role="group" aria-labelledby={`${id}-label`} className={cn("flex flex-wrap gap-2", !aide && "mt-2")}>
+        {options.map((o) => {
+          const actif = valeurs.includes(o.value);
+          return (
+            <button
+              key={o.value}
+              id={`${id}-${o.value}`}
+              type="button"
+              aria-pressed={actif}
+              onClick={() =>
+                onChange(actif ? valeurs.filter((v) => v !== o.value) : [...valeurs, o.value])
+              }
+              className={classePastille(actif)}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /** Groupe de choix en pastilles : un tap suffit, et retaper désélectionne. */
 function ChoixPastilles({
   id,
@@ -87,13 +134,7 @@ function ChoixPastilles({
               type="button"
               aria-pressed={actif}
               onClick={() => onChange(actif ? "" : o.id)}
-              className={cn(
-                "px-4 py-2 rounded-lg border text-sm transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                actif
-                  ? "border-primary bg-primary/10 text-primary font-medium"
-                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-              )}
+              className={classePastille(actif)}
             >
               {o.label}
             </button>
@@ -121,24 +162,15 @@ export default function DevisPage() {
     echeance: "",
     situation: "",
     nbOuvertures: "",
+    motivations: [] as string[],
+    materiaux: [] as string[],
+    sourceDeclaree: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleServiceChange = (serviceId: string, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        services: [...formData.services, serviceId],
-      });
-    } else {
-      setFormData({
-        ...formData,
-        services: formData.services.filter((s) => s !== serviceId),
-      });
-    }
-  };
+  const connaissances = CONNAISSANCES.map((c) => ({ id: c.value, label: c.label }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -356,23 +388,26 @@ export default function DevisPage() {
 
             {/* Services */}
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-4">
+              <h2 className="text-xl font-semibold text-foreground mb-1">
                 Services souhaités *
               </h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {services.map((service) => (
-                  <div key={service.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={service.id}
-                      checked={formData.services.includes(service.id)}
-                      onCheckedChange={(checked) =>
-                        handleServiceChange(service.id, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={service.id} className="cursor-pointer">
-                      {service.label}
-                    </Label>
-                  </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Plusieurs choix possibles.
+              </p>
+              <div className="space-y-5">
+                {GROUPES_SERVICES.map((groupe) => (
+                  <ChoixMultiples
+                    key={groupe.titre}
+                    id={`services-${groupe.titre
+                      .normalize("NFD")
+                      .replace(/[̀-ͯ]/g, "")
+                      .toLowerCase()
+                      .replace(/\W+/g, "-")}`}
+                    titre={groupe.titre}
+                    options={groupe.options}
+                    valeurs={formData.services}
+                    onChange={(v) => setFormData({ ...formData, services: v })}
+                  />
                 ))}
               </div>
             </div>
@@ -388,6 +423,22 @@ export default function DevisPage() {
                 des questions.
               </p>
               <div className="space-y-6">
+                <ChoixMultiples
+                  id="motivations"
+                  titre="Pourquoi souhaitez-vous faire ces travaux ?"
+                  aide="Plusieurs choix possibles."
+                  options={MOTIVATIONS}
+                  valeurs={formData.motivations}
+                  onChange={(v) => setFormData({ ...formData, motivations: v })}
+                />
+                <ChoixMultiples
+                  id="materiaux"
+                  titre="Quel matériau vous intéresse ?"
+                  aide="Plusieurs choix possibles."
+                  options={MATERIAUX}
+                  valeurs={formData.materiaux}
+                  onChange={(v) => setFormData({ ...formData, materiaux: v })}
+                />
                 <ChoixPastilles
                   id="budget"
                   titre="Votre budget approximatif"
@@ -416,6 +467,13 @@ export default function DevisPage() {
                   valeur={formData.nbOuvertures}
                   onChange={(v) => setFormData({ ...formData, nbOuvertures: v })}
                 />
+                <ChoixPastilles
+                  id="connaissance"
+                  titre="Comment nous avez-vous connus ?"
+                  options={connaissances}
+                  valeur={formData.sourceDeclaree}
+                  onChange={(v) => setFormData({ ...formData, sourceDeclaree: v })}
+                />
               </div>
             </div>
 
@@ -430,7 +488,7 @@ export default function DevisPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="Décrivez votre projet : nombre de fenêtres, dimensions, matériaux souhaités, etc."
+                placeholder="Décrivez votre projet : dimensions, coloris, contraintes d'accès, etc."
                 rows={5}
               />
             </div>

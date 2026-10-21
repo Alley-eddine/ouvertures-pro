@@ -64,9 +64,10 @@ export default function PolitiqueConfidentialitePage() {
           <li>Description libre du projet</li>
           <li>Mode de contact préféré (email, téléphone, WhatsApp)</li>
           <li>
-            Si vous les renseignez : budget approximatif, échéance du projet,
-            situation (propriétaire, locataire, copropriété) et nombre
-            d&apos;ouvertures concernées
+            Si vous les renseignez : raisons des travaux, matériaux souhaités,
+            budget approximatif, échéance du projet, situation (propriétaire,
+            locataire, copropriété), nombre d&apos;ouvertures concernées et
+            la manière dont vous nous avez connus
           </li>
         </ul>
         <p>

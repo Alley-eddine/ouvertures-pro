@@ -1,4 +1,11 @@
 import type { CollectionConfig } from 'payload'
+import {
+  CONNAISSANCES,
+  MATERIAUX,
+  MOTIVATIONS,
+  SERVICES,
+  optionsPayload,
+} from '../lib/catalogue-projet'
 
 /**
  * Leads — chaque demande envoyée depuis le site (page devis ou accueil).
@@ -121,12 +128,22 @@ export const Leads: CollectionConfig = {
               label: 'Services souhaités',
               type: 'select',
               hasMany: true,
-              options: [
-                { label: 'Fenêtres', value: 'fenetres' },
-                { label: 'Portes', value: 'portes' },
-                { label: 'Volets', value: 'volets' },
-                { label: 'Réparation', value: 'reparation' },
-              ],
+              options: optionsPayload(SERVICES),
+            },
+            {
+              name: 'motivations',
+              label: 'Pourquoi ces travaux',
+              type: 'select',
+              hasMany: true,
+              options: optionsPayload(MOTIVATIONS),
+              admin: { description: "C'est l'argument à mettre en avant dans le devis." },
+            },
+            {
+              name: 'materiaux',
+              label: 'Matériaux souhaités',
+              type: 'select',
+              hasMany: true,
+              options: optionsPayload(MATERIAUX),
             },
             { name: 'description', label: 'Description', type: 'textarea', maxLength: 5000 },
           ],
@@ -206,6 +223,29 @@ export const Leads: CollectionConfig = {
                   'Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, ' +
                   'demandez au client comment il vous a connu.',
               },
+            },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'sourceDeclaree',
+                  label: 'Nous a connus par (selon le client)',
+                  type: 'select',
+                  index: true,
+                  options: optionsPayload(CONNAISSANCES),
+                  admin: {
+                    description:
+                      'Ce que le client répond, à côté du canal détecté. Les deux peuvent différer : ' +
+                      'un client recommandé qui tape l’adresse apparaît en « accès direct ».',
+                  },
+                },
+                {
+                  name: 'sourceDeclareeDetail',
+                  label: 'Précision',
+                  type: 'text',
+                  admin: { description: 'Qui l’a recommandé, quel chantier, quel réseau…' },
+                },
+              ],
             },
             {
               name: 'source',

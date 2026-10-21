@@ -141,7 +141,32 @@ export interface Lead {
   city?: string | null;
   preferredContact?: ('email' | 'phone' | 'whatsapp') | null;
   projectType?: ('neuf' | 'renovation' | 'remplacement') | null;
-  services?: ('fenetres' | 'portes' | 'volets' | 'reparation')[] | null;
+  services?:
+    | (
+        | 'fenetres'
+        | 'fenetres-toit'
+        | 'portes-entree'
+        | 'portes-blindees'
+        | 'volets-roulants'
+        | 'volets-battants'
+        | 'persiennes'
+        | 'portes-garage'
+        | 'portail'
+        | 'portillon'
+        | 'cloture'
+        | 'verriere-interieur'
+        | 'verriere-exterieur'
+        | 'verriere-toit'
+        | 'automatisme'
+        | 'alarme'
+        | 'reparation'
+      )[]
+    | null;
+  /**
+   * C'est l'argument à mettre en avant dans le devis.
+   */
+  motivations?: ('thermique' | 'phonique' | 'securite' | 'esthetique' | 'panne')[] | null;
+  materiaux?: ('pvc' | 'aluminium' | 'bois' | 'mixte' | 'acier' | 'conseil')[] | null;
   description?: string | null;
   budget?: ('moins-2000' | '2000-5000' | '5000-10000' | 'plus-10000' | 'inconnu') | null;
   echeance?: ('des-que-possible' | '1-3-mois' | '3-6-mois' | 'renseignement') | null;
@@ -152,6 +177,24 @@ export interface Lead {
    */
   sourceKey?:
     ('google-ads' | 'gbp' | 'seo' | 'social' | 'ia' | 'referent' | 'campagne' | 'direct' | 'bouche-a-oreille') | null;
+  /**
+   * Ce que le client répond, à côté du canal détecté. Les deux peuvent différer : un client recommandé qui tape l’adresse apparaît en « accès direct ».
+   */
+  sourceDeclaree?:
+    | (
+        | 'recherche-google'
+        | 'google-maps'
+        | 'recommandation'
+        | 'reseaux-sociaux'
+        | 'chantier-vehicule'
+        | 'deja-client'
+        | 'autre'
+      )
+    | null;
+  /**
+   * Qui l’a recommandé, quel chantier, quel réseau…
+   */
+  sourceDeclareeDetail?: string | null;
   source?: string | null;
   campagne?: string | null;
   motCle?: string | null;
@@ -312,12 +355,16 @@ export interface LeadsSelect<T extends boolean = true> {
   preferredContact?: T;
   projectType?: T;
   services?: T;
+  motivations?: T;
+  materiaux?: T;
   description?: T;
   budget?: T;
   echeance?: T;
   situation?: T;
   nbOuvertures?: T;
   sourceKey?: T;
+  sourceDeclaree?: T;
+  sourceDeclareeDetail?: T;
   source?: T;
   campagne?: T;
   motCle?: T;
