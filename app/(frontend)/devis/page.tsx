@@ -12,7 +12,8 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
-import { CONNAISSANCES, GROUPES_SERVICES, MATERIAUX, MOTIVATIONS } from "@/lib/catalogue-projet";
+import { GROUPES_SERVICES } from "@/lib/catalogue-projet";
+import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
 import { cn } from "@/lib/utils";
 
 const projectTypes = [
@@ -21,16 +22,10 @@ const projectTypes = [
   { id: "remplacement", label: "Remplacement à l'identique" },
 ];
 
-// Qualification : un seul tap par question, aucune saisie, tout est facultatif.
-// Ces réponses permettent de rappeler en priorité les projets les plus avancés.
-const budgets = [
-  { id: "moins-2000", label: "Moins de 2 000 €" },
-  { id: "2000-5000", label: "2 000 à 5 000 €" },
-  { id: "5000-10000", label: "5 000 à 10 000 €" },
-  { id: "plus-10000", label: "Plus de 10 000 €" },
-  { id: "inconnu", label: "Je ne sais pas encore" },
-];
-
+// Qualification : un seul tap par question, aucune saisie. Seule l'échéance est
+// obligatoire (elle a sa porte de sortie, « Je me renseigne ») : c'est elle qui
+// dit qui rappeler en premier. Pourquoi, matériau, budget et « comment vous
+// nous avez connus » sont posés après l'envoi, sur la page de remerciement.
 const echeances = [
   { id: "des-que-possible", label: "Dès que possible" },
   { id: "1-3-mois", label: "Sous 1 à 3 mois" },
@@ -158,22 +153,39 @@ export default function DevisPage() {
     services: [] as string[],
     description: "",
     preferredContact: "email",
-    budget: "",
     echeance: "",
     situation: "",
     nbOuvertures: "",
-    motivations: [] as string[],
-    materiaux: [] as string[],
-    sourceDeclaree: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tentative, setTentative] = useState(false);
+  const [complement, setComplement] = useState<{ leadId: string | null; jeton: string | null }>({
+    leadId: null,
+    jeton: null,
+  });
 
-  const connaissances = CONNAISSANCES.map((c) => ({ id: c.value, label: c.label }));
+  /** Les choix en pastilles ne sont pas des champs natifs : on les vérifie à la main. */
+  function choixManquants(d: typeof formData) {
+    return [
+      !d.projectType && { id: "section-type", texte: "le type de projet" },
+      !d.services.length && { id: "section-services", texte: "au moins un service" },
+      !d.echeance && { id: "section-echeance", texte: "la période des travaux" },
+    ].filter((m): m is { id: string; texte: string } => Boolean(m));
+  }
+
+  // Affiché après une première tentative d'envoi, et mis à jour à chaque choix.
+  const manques = tentative ? choixManquants(formData).map((m) => m.texte) : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const manquants = choixManquants(formData);
+    setTentative(true);
+    if (manquants.length) {
+      document.getElementById(manquants[0].id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
@@ -190,7 +202,13 @@ export default function DevisPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de l'envoi");
       }
+      const reponse = await res.json().catch(() => ({}));
+      setComplement({
+        leadId: reponse.leadId ? String(reponse.leadId) : null,
+        jeton: typeof reponse.jeton === "string" ? reponse.jeton : null,
+      });
       signalerConversion("devis");
+      window.scrollTo(0, 0);
       setIsSubmitted(true);
     } catch (err) {
       setErrorMsg(
@@ -205,8 +223,8 @@ export default function DevisPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
+        <div className="max-w-xl w-full text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
@@ -217,7 +235,10 @@ export default function DevisPage() {
             Merci pour votre demande de devis. Notre équipe vous contactera dans les
             24-48 heures pour discuter de votre projet.
           </p>
-          <Button asChild>
+          <div className="mb-8">
+            <QuestionsApresEnvoi leadId={complement.leadId} jeton={complement.jeton} />
+          </div>
+          <Button asChild variant="outline">
             <Link href="/">Retour à l&apos;accueil</Link>
           </Button>
         </div>
@@ -364,7 +385,7 @@ export default function DevisPage() {
             </div>
 
             {/* Project Type */}
-            <div>
+            <div id="section-type" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-foreground mb-4">
                 Type de projet *
               </h2>
@@ -387,7 +408,7 @@ export default function DevisPage() {
             </div>
 
             {/* Services */}
-            <div>
+            <div id="section-services" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-foreground mb-1">
                 Services souhaités *
               </h2>
@@ -414,45 +435,19 @@ export default function DevisPage() {
 
             {/* Qualification — facultatif, un tap par question */}
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-1">
-                Pour préparer votre devis
+              <h2 className="text-xl font-semibold text-foreground mb-6">
+                Votre projet
               </h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Facultatif, mais ces quelques réponses nous permettent de vous
-                rappeler avec une estimation déjà sérieuse plutôt qu&apos;avec
-                des questions.
-              </p>
               <div className="space-y-6">
-                <ChoixMultiples
-                  id="motivations"
-                  titre="Pourquoi souhaitez-vous faire ces travaux ?"
-                  aide="Plusieurs choix possibles."
-                  options={MOTIVATIONS}
-                  valeurs={formData.motivations}
-                  onChange={(v) => setFormData({ ...formData, motivations: v })}
-                />
-                <ChoixMultiples
-                  id="materiaux"
-                  titre="Quel matériau vous intéresse ?"
-                  aide="Plusieurs choix possibles."
-                  options={MATERIAUX}
-                  valeurs={formData.materiaux}
-                  onChange={(v) => setFormData({ ...formData, materiaux: v })}
-                />
-                <ChoixPastilles
-                  id="budget"
-                  titre="Budget approximatif pour l'ensemble du projet"
-                  options={budgets}
-                  valeur={formData.budget}
-                  onChange={(v) => setFormData({ ...formData, budget: v })}
-                />
+                <div id="section-echeance" className="scroll-mt-24">
                 <ChoixPastilles
                   id="echeance"
-                  titre="Quand souhaitez-vous faire les travaux ?"
+                  titre="Quand souhaitez-vous faire les travaux ? *"
                   options={echeances}
                   valeur={formData.echeance}
                   onChange={(v) => setFormData({ ...formData, echeance: v })}
                 />
+                </div>
                 <ChoixPastilles
                   id="situation"
                   titre="Vous êtes"
@@ -466,13 +461,6 @@ export default function DevisPage() {
                   options={nbOuverturesOptions}
                   valeur={formData.nbOuvertures}
                   onChange={(v) => setFormData({ ...formData, nbOuvertures: v })}
-                />
-                <ChoixPastilles
-                  id="connaissance"
-                  titre="Comment nous avez-vous connus ?"
-                  options={connaissances}
-                  valeur={formData.sourceDeclaree}
-                  onChange={(v) => setFormData({ ...formData, sourceDeclaree: v })}
                 />
               </div>
             </div>
@@ -525,6 +513,16 @@ export default function DevisPage() {
                 </div>
               </RadioGroup>
             </div>
+
+            {manques.length > 0 && (
+              <p role="alert" className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                Pour envoyer votre demande, indiquez{" "}
+                {manques.length > 1
+                  ? `${manques.slice(0, -1).join(", ")} et ${manques[manques.length - 1]}`
+                  : manques[0]}
+                .
+              </p>
+            )}
 
             {errorMsg && (
               <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-800">

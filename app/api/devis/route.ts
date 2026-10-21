@@ -14,6 +14,7 @@ import {
   type ValeurMotivation,
   type ValeurService,
 } from "@/lib/catalogue-projet";
+import { creerJeton } from "@/lib/jeton-lead";
 
 // Logo affiché dans l'email — URL hostée (data: URI / base64 strippés par Gmail).
 // La prod tourne sur ouverture-pro.fr, le logo est servi par Next.
@@ -125,7 +126,7 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
   const required: Array<keyof DevisPayload> =
     origine === "Accueil"
       ? ["firstName", "email", "phone"]
-      : ["firstName", "lastName", "email", "phone", "city", "postalCode", "projectType"];
+      : ["firstName", "lastName", "email", "phone", "city", "postalCode", "projectType", "echeance"];
   for (const k of required) {
     if (typeof b[k] !== "string" || (b[k] as string).trim() === "") {
       return { ok: false, error: `Missing or invalid field: ${k}` };
@@ -133,6 +134,10 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
   }
   if (!Array.isArray(b.services)) {
     return { ok: false, error: "services must be an array" };
+  }
+  const services = filtrer(SERVICES, b.services);
+  if (origine !== "Accueil" && services.length === 0) {
+    return { ok: false, error: "Choisissez au moins un service." };
   }
   // Basic email format check
   const emailStr = b.email as string;
@@ -150,7 +155,7 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
       city: texte(b.city),
       postalCode: texte(b.postalCode),
       projectType: texte(b.projectType),
-      services: filtrer(SERVICES, b.services),
+      services,
       motivations: filtrer(MOTIVATIONS, b.motivations),
       materiaux: filtrer(MATERIAUX, b.materiaux),
       sourceDeclaree: filtrer(CONNAISSANCES, [b.sourceDeclaree])[0] ?? "",
@@ -245,6 +250,15 @@ async function enregistrerLead(data: DevisPayload, userAgent: string | null): Pr
   }
 }
 
+function jetonOuNull(leadId: string): string | null {
+  try {
+    return creerJeton(leadId);
+  } catch (err) {
+    console.error("[devis] Jeton de complément non créé", err);
+    return null;
+  }
+}
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://ouverture-pro.fr");
@@ -279,6 +293,8 @@ export async function POST(req: Request) {
 
   // L'admin passe en premier : c'est le filet de sécurité si l'email échoue.
   const leadId = await enregistrerLead(data, req.headers.get("user-agent"));
+  // Permet au visiteur de compléter sa demande sur la page de remerciement.
+  const jeton = leadId ? jetonOuNull(leadId) : null;
   const lienAdmin = leadId ? `${SITE_URL}/admin/collections/leads/${leadId}` : null;
 
   if (!apiKey || !from || !toRaw) {
@@ -289,7 +305,7 @@ export async function POST(req: Request) {
     });
     // Sans email, la demande n'est pas perdue si elle est dans l'admin.
     return leadId
-      ? NextResponse.json({ ok: true, leadId, email: "non configuré" })
+      ? NextResponse.json({ ok: true, leadId, jeton, email: "non configuré" })
       : NextResponse.json({ error: "Email service not configured" }, { status: 500 });
   }
 
@@ -640,15 +656,15 @@ ${blocProvenance}
     if (error) {
       console.error("[devis] Resend error", error);
       return leadId
-        ? NextResponse.json({ ok: true, leadId, email: "échec" })
+        ? NextResponse.json({ ok: true, leadId, jeton, email: "échec" })
         : NextResponse.json({ error: "Failed to send email" }, { status: 502 });
     }
 
-    return NextResponse.json({ ok: true, id: sent?.id, leadId });
+    return NextResponse.json({ ok: true, id: sent?.id, leadId, jeton });
   } catch (err) {
     console.error("[devis] Unexpected error", err);
     return leadId
-      ? NextResponse.json({ ok: true, leadId, email: "échec" })
+      ? NextResponse.json({ ok: true, leadId, jeton, email: "échec" })
       : NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }

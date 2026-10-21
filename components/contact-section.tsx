@@ -11,6 +11,7 @@ import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
 import { GROUPES_SERVICES, SERVICES, libelle } from "@/lib/catalogue-projet";
 import { cn } from "@/lib/utils";
+import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,10 @@ export function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [complement, setComplement] = useState<{ leadId: string | null; jeton: string | null }>({
+    leadId: null,
+    jeton: null,
+  });
   const { ref: sectionRef, isVisible } = useScrollReveal({ threshold: 0.1 });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,6 +59,11 @@ export function ContactSection() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de l'envoi");
       }
+      const reponse = await res.json().catch(() => ({}));
+      setComplement({
+        leadId: reponse.leadId ? String(reponse.leadId) : null,
+        jeton: typeof reponse.jeton === "string" ? reponse.jeton : null,
+      });
       signalerConversion("contact");
       setIsSubmitted(true);
       setFormData({ name: "", email: "", phone: "", services: [], message: "" });
@@ -194,7 +204,7 @@ export function ContactSection() {
             </h3>
 
             {isSubmitted ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center animate-reveal-scale">
                   <CheckCircle className="w-10 h-10 text-green-500" />
                 </div>
@@ -204,6 +214,9 @@ export function ContactSection() {
                 <p className="text-muted-foreground mb-6">
                   Nous vous répondrons dans les plus brefs délais.
                 </p>
+                <div className="mb-6">
+                  <QuestionsApresEnvoi leadId={complement.leadId} jeton={complement.jeton} compact />
+                </div>
                 <Button
                   variant="outline"
                   onClick={() => setIsSubmitted(false)}

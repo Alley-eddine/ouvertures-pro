@@ -82,6 +82,14 @@ export const MATERIAUX = [
   { value: "conseil", label: "Je ne sais pas, conseillez-moi" },
 ] as const satisfies readonly Option[];
 
+export const BUDGETS = [
+  { value: "moins-2000", label: "Moins de 2 000 €" },
+  { value: "2000-5000", label: "2 000 à 5 000 €" },
+  { value: "5000-10000", label: "5 000 à 10 000 €" },
+  { value: "plus-10000", label: "Plus de 10 000 €" },
+  { value: "inconnu", label: "Je ne sais pas encore" },
+] as const satisfies readonly Option[];
+
 /**
  * « Comment nous avez-vous connu ? », déclaré par le client. Complète le canal
  * détecté automatiquement sans jamais le remplacer : le bouche-à-oreille ou un
@@ -103,6 +111,7 @@ export type ValeurService = OptionService["value"];
 export type ValeurMotivation = (typeof MOTIVATIONS)[number]["value"];
 export type ValeurMateriau = (typeof MATERIAUX)[number]["value"];
 export type ValeurConnaissance = (typeof CONNAISSANCES)[number]["value"];
+export type ValeurBudget = (typeof BUDGETS)[number]["value"];
 
 export function libelle(options: readonly Option[], valeur: string): string {
   return options.find((o) => o.value === valeur)?.label ?? valeur;
