@@ -441,7 +441,7 @@ export default function DevisPage() {
                 />
                 <ChoixPastilles
                   id="budget"
-                  titre="Votre budget approximatif"
+                  titre="Budget approximatif pour l'ensemble du projet"
                   options={budgets}
                   valeur={formData.budget}
                   onChange={(v) => setFormData({ ...formData, budget: v })}

@@ -9,14 +9,15 @@ import { Mail, Phone, MapPin, Send, CheckCircle } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
-import { GROUPES_SERVICES } from "@/lib/catalogue-projet";
+import { GROUPES_SERVICES, SERVICES, libelle } from "@/lib/catalogue-projet";
+import { cn } from "@/lib/utils";
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    service: "",
+    services: [] as string[],
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +45,7 @@ export function ContactSection() {
           email: formData.email,
           phone: formData.phone,
           description: formData.message,
-          services: formData.service ? [formData.service] : [],
+          services: formData.services,
           origine: "Accueil",
           provenance: provenancePourEnvoi(),
         }),
@@ -55,7 +56,7 @@ export function ContactSection() {
       }
       signalerConversion("contact");
       setIsSubmitted(true);
-      setFormData({ name: "", email: "", phone: "", service: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", services: [], message: "" });
     } catch (err) {
       setErrorMsg(
         err instanceof Error
@@ -249,29 +250,61 @@ export function ContactSection() {
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="service">
-                    Votre projet concerne{" "}
-                    <span className="font-normal text-muted-foreground">(facultatif)</span>
-                  </Label>
-                  <select
-                    id="service"
-                    value={formData.service}
-                    onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                    className="input-animated h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="">Choisir…</option>
+                {/* Replié par défaut pour garder le formulaire court ; plusieurs choix possibles. */}
+                <details className="group rounded-md border border-input bg-background">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm [&::-webkit-details-marker]:hidden">
+                    <span>
+                      <span className="font-medium text-foreground">Votre projet concerne</span>{" "}
+                      <span className="text-muted-foreground">(facultatif)</span>
+                      {formData.services.length > 0 && (
+                        <span className="mt-0.5 block text-primary">
+                          {formData.services.map((v) => libelle(SERVICES, v)).join(", ")}
+                        </span>
+                      )}
+                    </span>
+                    <span aria-hidden className="text-muted-foreground transition-transform group-open:rotate-180">
+                      ▾
+                    </span>
+                  </summary>
+                  <div className="space-y-3 border-t border-input px-3 pb-3 pt-3">
                     {GROUPES_SERVICES.map((groupe) => (
-                      <optgroup key={groupe.titre} label={groupe.titre}>
-                        {groupe.options.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </optgroup>
+                      <div key={groupe.titre}>
+                        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {groupe.titre}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {groupe.options.map((o) => {
+                            const actif = formData.services.includes(o.value);
+                            return (
+                              <button
+                                key={o.value}
+                                type="button"
+                                aria-pressed={actif}
+                                onClick={() =>
+                                  setFormData((f) => ({
+                                    ...f,
+                                    services: actif
+                                      ? f.services.filter((v) => v !== o.value)
+                                      : [...f.services, o.value],
+                                  }))
+                                }
+                                className={cn(
+                                  "rounded-md border px-2.5 py-1 text-xs transition-colors",
+                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                  actif
+                                    ? "border-primary bg-primary/10 font-medium text-primary"
+                                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                                )}
+                              >
+                                {o.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     ))}
-                  </select>
-                </div>
+                  </div>
+                </details>
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
                   <Textarea
