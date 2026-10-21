@@ -129,7 +129,7 @@ export interface Lead {
   id: number;
   nomComplet?: string | null;
   /**
-   * Pour un client qui a appelé ou s’est présenté : choisissez « Saisie manuelle » et renseignez son canal dans l’onglet Provenance.
+   * Pour un client qui a appelé ou s’est présenté : choisissez « Saisie manuelle » et renseignez son canal dans l’onglet Provenance (« Appel depuis le site » s’il vous a trouvé sur internet).
    */
   origine: 'devis' | 'accueil' | 'manuel';
   firstName: string;
@@ -173,10 +173,22 @@ export interface Lead {
   situation?: ('proprietaire' | 'locataire' | 'copropriete') | null;
   nbOuvertures?: ('1-2' | '3-5' | '6-10' | 'plus-10') | null;
   /**
-   * Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, demandez au client comment il vous a connu.
+   * Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, demandez au client comment il vous a connu : « Appel depuis le site » s’il vous a trouvé sur internet et vous a appelé, « Bouche-à-oreille » si on vous a recommandé.
    */
   sourceKey?:
-    ('google-ads' | 'gbp' | 'seo' | 'social' | 'ia' | 'referent' | 'campagne' | 'direct' | 'bouche-a-oreille') | null;
+    | (
+        | 'google-ads'
+        | 'gbp'
+        | 'seo'
+        | 'social'
+        | 'ia'
+        | 'referent'
+        | 'campagne'
+        | 'direct'
+        | 'appel-site'
+        | 'bouche-a-oreille'
+      )
+    | null;
   /**
    * Ce que le client répond, à côté du canal détecté. Les deux peuvent différer : un client recommandé qui tape l’adresse apparaît en « accès direct ».
    */

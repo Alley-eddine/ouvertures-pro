@@ -71,7 +71,8 @@ export const Leads: CollectionConfig = {
               admin: {
                 description:
                   'Pour un client qui a appelé ou s’est présenté : choisissez « Saisie manuelle » ' +
-                  'et renseignez son canal dans l’onglet Provenance.',
+                  'et renseignez son canal dans l’onglet Provenance (« Appel depuis le site » s’il ' +
+                  'vous a trouvé sur internet).',
               },
             },
             {
@@ -216,12 +217,17 @@ export const Leads: CollectionConfig = {
                 { label: 'Site référent', value: 'referent' },
                 { label: 'Autre campagne', value: 'campagne' },
                 { label: 'Accès direct', value: 'direct' },
+                // Saisie manuelle : un client qui a trouvé le site et appelé
+                // directement. Sans ce choix, ces appels ne laissent qu'un clic
+                // anonyme et ne sont rattachés à aucun chantier signé.
+                { label: 'Appel depuis le site', value: 'appel-site' },
                 { label: 'Bouche-à-oreille', value: 'bouche-a-oreille' },
               ],
               admin: {
                 description:
                   'Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, ' +
-                  'demandez au client comment il vous a connu.',
+                  'demandez au client comment il vous a connu : « Appel depuis le site » s’il vous a ' +
+                  'trouvé sur internet et vous a appelé, « Bouche-à-oreille » si on vous a recommandé.',
               },
             },
             {
