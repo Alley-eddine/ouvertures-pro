@@ -15,6 +15,7 @@ import {
   type ValeurService,
 } from "@/lib/catalogue-projet";
 import { creerJeton } from "@/lib/jeton-lead";
+import { FRAIS_HORS_ZONE_HT, decrireDistance, situer } from "@/lib/zone";
 
 // Logo affiché dans l'email — URL hostée (data: URI / base64 strippés par Gmail).
 // La prod tourne sur ouverture-pro.fr, le logo est servi par Next.
@@ -334,6 +335,15 @@ export async function POST(req: Request) {
     { valeur: data.nbOuvertures, label: NB_OUVERTURES_LABELS[data.nbOuvertures] },
   ].filter((q) => Boolean(q.label));
 
+  // Hors zone : Cédric doit le savoir avant de rappeler, pour annoncer les frais.
+  const zone = data.postalCode ? situer(data.postalCode, data.city) : null;
+  if (zone?.horsZone) {
+    qualification.unshift({
+      valeur: "hors-zone",
+      label: `Hors zone · ${decrireDistance(zone)} · ${FRAIS_HORS_ZONE_HT} € HT si pas de signature`,
+    });
+  }
+
   const provenanceLabel = data.provenance?.source ?? "Provenance inconnue";
   const detailsProvenance = [
     data.provenance?.campagne ? `Campagne : ${data.provenance.campagne}` : "",
@@ -351,18 +361,19 @@ export async function POST(req: Request) {
     .join(" · ");
 
   const lieuSubject = `${data.postalCode} ${data.city}`.trim();
-  const subject = `Nouvelle demande — ${fullName}${
+  const subject = `${zone?.horsZone ? "[Hors zone] " : ""}Nouvelle demande — ${fullName}${
     resumeSubject ? ` — ${resumeSubject}` : ""
   }${lieuSubject ? ` (${lieuSubject})` : ""}`;
 
   const chipsHtml = qualification
     .map((q) => {
       const chaude = QUALIFICATION_CHAUDE.has(q.valeur);
-      const fond = chaude ? COLOR_SECONDARY : "#ffffff";
-      const texteCouleur = chaude ? "#ffffff" : COLOR_MUTED;
-      const bordure = chaude ? COLOR_SECONDARY : COLOR_BORDER;
+      const alerte = q.valeur === "hors-zone";
+      const fond = alerte ? "#fef3c7" : chaude ? COLOR_SECONDARY : "#ffffff";
+      const texteCouleur = alerte ? "#92400e" : chaude ? "#ffffff" : COLOR_MUTED;
+      const bordure = alerte ? "#f59e0b" : chaude ? COLOR_SECONDARY : COLOR_BORDER;
       return `<span style="display: inline-block; margin: 0 6px 6px 0; padding: 5px 11px; border: 1px solid ${bordure}; border-radius: 999px; background: ${fond}; color: ${texteCouleur}; font-size: 13px; font-weight: ${
-        chaude ? "700" : "500"
+        chaude || alerte ? "700" : "500"
       };">${escapeHtml(q.label)}</span>`;
     })
     .join("");
@@ -616,7 +627,7 @@ ${blocProvenance}
                 Ouvertures Pro
               </p>
               <p style="margin: 0 0 10px 0; color: #b0b0b0; font-size: 12px;">
-                Fenêtres, portes, volets &amp; portails — Île-de-France
+                Fenêtres, portes, volets &amp; portails — Essonne et alentours
               </p>
               <p style="margin: 0; color: #b0b0b0; font-size: 12px; line-height: 1.6;">
                 22 bis rue des Malines, 91090 Lisses<br>

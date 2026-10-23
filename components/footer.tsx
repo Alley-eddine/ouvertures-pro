@@ -20,7 +20,7 @@ export function Footer() {
             />
             <p className="text-background/70 text-sm leading-relaxed">
               Cédric Tamoud et son équipe — artisans menuisiers à Lisses,
-              au service de l&apos;Île-de-France depuis 2018.
+              au service de l&apos;Essonne et de ses alentours depuis 2018.
             </p>
             <div className="mt-4 space-y-2 text-sm">
               <p>

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono', disp
 const SITE_URL = 'https://ouverture-pro.fr';
 const SITE_NAME = 'Ouvertures Pro';
 const DESCRIPTION =
-  'Ouvertures Pro - SARL spécialisée en menuiserie bois et PVC à Lisses (91). Installation de fenêtres, portes et volets en Île-de-France. Devis gratuit.';
+  'Ouvertures Pro - SARL spécialisée en menuiserie bois et PVC à Lisses (91). Installation de fenêtres, portes et volets en Essonne et alentours. Devis gratuit dans un rayon de 25 km.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     'PVC',
     'aluminium',
     'Lisses',
-    'Île-de-France',
+    'Essonne',
     'devis gratuit',
   ],
   icons: {
@@ -88,11 +88,14 @@ const localBusinessSchema = {
     latitude: 48.6018,
     longitude: 2.4256,
   },
+  // Zone de déplacement gratuit : 25 km autour de l'atelier (voir lib/zone.ts).
   areaServed: [
-    { '@type': 'AdministrativeArea', name: 'Île-de-France' },
+    {
+      '@type': 'GeoCircle',
+      geoMidpoint: { '@type': 'GeoCoordinates', latitude: 48.6018, longitude: 2.4256 },
+      geoRadius: 25000,
+    },
     { '@type': 'AdministrativeArea', name: 'Essonne' },
-    { '@type': 'AdministrativeArea', name: 'Hauts-de-Seine' },
-    { '@type': 'AdministrativeArea', name: 'Val-de-Marne' },
   ],
   openingHoursSpecification: [
     {

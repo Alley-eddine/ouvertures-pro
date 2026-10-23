@@ -13,6 +13,7 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
 import { GROUPES_SERVICES } from "@/lib/catalogue-projet";
+import { FRAIS_HORS_ZONE_HT, RAYON_KM, decrireDistance, situer } from "@/lib/zone";
 import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
 import { cn } from "@/lib/utils";
 
@@ -174,6 +175,9 @@ export default function DevisPage() {
       !d.echeance && { id: "section-echeance", texte: "la période des travaux" },
     ].filter((m): m is { id: string; texte: string } => Boolean(m));
   }
+
+  // Prévient le visiteur des frais avant qu'il envoie, plutôt qu'au téléphone.
+  const zone = situer(formData.postalCode, formData.city);
 
   // Affiché après une première tentative d'envoi, et mis à jour à chaque choix.
   const manques = tentative ? choixManquants(formData).map((m) => m.texte) : [];
@@ -381,6 +385,16 @@ export default function DevisPage() {
                     />
                   </div>
                 </div>
+                {zone?.horsZone && (
+                  <p
+                    role="status"
+                    className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+                  >
+                    {zone.commune ?? "Votre commune"} est à {decrireDistance(zone)} de Lisses, au-delà de
+                    notre zone de déplacement gratuit ({RAYON_KM} km). Le déplacement et le devis sont
+                    facturés {FRAIS_HORS_ZONE_HT} € HT, et <strong>offerts si vous signez le devis</strong>.
+                  </p>
+                )}
               </div>
             </div>
 

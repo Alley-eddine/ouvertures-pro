@@ -139,6 +139,14 @@ export interface Lead {
   address?: string | null;
   postalCode?: string | null;
   city?: string | null;
+  /**
+   * À vol d’oiseau, calculée depuis le code postal. Vide : plus de 45 km.
+   */
+  distanceKm?: number | null;
+  /**
+   * Déplacement et devis facturés 150 € HT, offerts si le client signe.
+   */
+  horsZone?: boolean | null;
   preferredContact?: ('email' | 'phone' | 'whatsapp') | null;
   projectType?: ('neuf' | 'renovation' | 'remplacement') | null;
   services?:
@@ -364,6 +372,8 @@ export interface LeadsSelect<T extends boolean = true> {
   address?: T;
   postalCode?: T;
   city?: T;
+  distanceKm?: T;
+  horsZone?: T;
   preferredContact?: T;
   projectType?: T;
   services?: T;

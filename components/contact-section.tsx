@@ -10,6 +10,7 @@ import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
 import { GROUPES_SERVICES, SERVICES, libelle } from "@/lib/catalogue-projet";
+import { TEXTE_ZONE } from "@/lib/zone";
 import { cn } from "@/lib/utils";
 import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
 
@@ -180,7 +181,7 @@ export function ContactSection() {
                 Zone d&apos;Intervention
               </h3>
               <p className="text-muted-foreground mb-4">
-                Nous intervenons dans toute l&apos;Île-de-France et ses environs (Essonne, Hauts-de-Seine, Val-de-Marne...).
+                Nous intervenons en Essonne et alentours. {TEXTE_ZONE}
               </p>
               <div className="bg-card rounded-xl overflow-hidden h-48 border border-border">
                 <iframe

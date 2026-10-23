@@ -6,6 +6,7 @@ import {
   SERVICES,
   optionsPayload,
 } from '../lib/catalogue-projet'
+import { FRAIS_HORS_ZONE_HT, RAYON_KM, situer } from '../lib/zone'
 
 /**
  * Leads — chaque demande envoyée depuis le site (page devis ou accueil).
@@ -22,7 +23,7 @@ export const Leads: CollectionConfig = {
   labels: { singular: 'Lead', plural: 'Leads' },
   admin: {
     useAsTitle: 'nomComplet',
-    defaultColumns: ['nomComplet', 'sourceKey', 'budget', 'echeance', 'status', 'submittedAt'],
+    defaultColumns: ['nomComplet', 'city', 'horsZone', 'sourceKey', 'echeance', 'status', 'submittedAt'],
     listSearchableFields: ['nomComplet', 'email', 'phone', 'city', 'postalCode'],
     description:
       'Toutes les demandes reçues par le site. Mettez à jour le statut au fil des échanges ; ' +
@@ -40,6 +41,18 @@ export const Leads: CollectionConfig = {
       ({ data }) => {
         const nom = [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim()
         return nom ? { ...data, nomComplet: nom } : data
+      },
+      // Distance à l'atelier, recalculée à chaque modification de l'adresse :
+      // vaut aussi pour les fiches saisies à la main.
+      ({ data, originalDoc }) => {
+        const cp = data?.postalCode ?? originalDoc?.postalCode
+        const ville = data?.city ?? originalDoc?.city ?? ''
+        const zone = cp ? situer(String(cp), String(ville)) : null
+        return {
+          ...data,
+          distanceKm: zone?.km ?? null,
+          horsZone: zone?.horsZone ?? false,
+        }
       },
     ],
   },
@@ -97,6 +110,30 @@ export const Leads: CollectionConfig = {
               fields: [
                 { name: 'postalCode', label: 'Code postal', type: 'text' },
                 { name: 'city', label: 'Ville', type: 'text' },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'distanceKm',
+                  label: 'Distance de Lisses (km)',
+                  type: 'number',
+                  admin: {
+                    readOnly: true,
+                    description: 'À vol d’oiseau, calculée depuis le code postal. Vide : plus de 45 km.',
+                  },
+                },
+                {
+                  name: 'horsZone',
+                  label: `Hors zone (plus de ${RAYON_KM} km)`,
+                  type: 'checkbox',
+                  index: true,
+                  admin: {
+                    readOnly: true,
+                    description: `Déplacement et devis facturés ${FRAIS_HORS_ZONE_HT} € HT, offerts si le client signe.`,
+                  },
+                },
               ],
             },
             {

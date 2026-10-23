@@ -141,7 +141,7 @@ export function GallerySection() {
             Plus de chantiers, plus de détails.
           </h2>
           <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
-            Portails, stores, portes, fenêtres et clôtures — un aperçu de ce qu&apos;on pose au quotidien en Île-de-France.
+            Portails, stores, portes, fenêtres et clôtures — un aperçu de ce qu&apos;on pose au quotidien autour de Lisses.
           </p>
         </div>
 
