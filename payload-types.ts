@@ -147,6 +147,10 @@ export interface Lead {
    * Déplacement et devis facturés 150 € HT, offerts si le client signe.
    */
   horsZone?: boolean | null;
+  /**
+   * Pas de déplacement pour un dépannage à cette distance.
+   */
+  depannageHorsZone?: boolean | null;
   preferredContact?: ('email' | 'phone' | 'whatsapp') | null;
   projectType?: ('neuf' | 'renovation' | 'remplacement') | null;
   services?:
@@ -374,6 +378,7 @@ export interface LeadsSelect<T extends boolean = true> {
   city?: T;
   distanceKm?: T;
   horsZone?: T;
+  depannageHorsZone?: T;
   preferredContact?: T;
   projectType?: T;
   services?: T;

@@ -60,11 +60,11 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Navigation</h4>
             <ul className="space-y-3 text-sm text-background/70">
               {[
-                { href: "#accueil", label: "Accueil" },
-                { href: "#realisations", label: "Réalisations" },
-                { href: "#services", label: "Nos Services" },
-                { href: "#equipe", label: "L'Équipe" },
-                { href: "#contact", label: "Contact" },
+                { href: "/#accueil", label: "Accueil" },
+                { href: "/#realisations", label: "Réalisations" },
+                { href: "/#services", label: "Nos Services" },
+                { href: "/#equipe", label: "L'Équipe" },
+                { href: "/#contact", label: "Contact" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link

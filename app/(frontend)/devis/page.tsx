@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,16 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { provenancePourEnvoi } from "@/lib/attribution";
 import { signalerConversion } from "@/lib/conversions";
-import { GROUPES_SERVICES } from "@/lib/catalogue-projet";
-import { FRAIS_HORS_ZONE_HT, RAYON_KM, decrireDistance, situer } from "@/lib/zone";
+import { GROUPES_SERVICES, SERVICES, filtrer } from "@/lib/catalogue-projet";
+import {
+  FRAIS_HORS_ZONE_HT,
+  RAYON_DEPANNAGE_KM,
+  RAYON_KM,
+  SERVICE_DEPANNAGE,
+  decrireDistance,
+  depannageHorsZone,
+  situer,
+} from "@/lib/zone";
 import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
 import { cn } from "@/lib/utils";
 
@@ -162,6 +170,13 @@ export default function DevisPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [tentative, setTentative] = useState(false);
+
+  // Depuis une page métier (/devis?services=volets-roulants), le service est
+  // déjà coché : le visiteur venu d'une annonce n'a rien à rechercher.
+  useEffect(() => {
+    const demandes = filtrer(SERVICES, new URLSearchParams(window.location.search).get("services")?.split(","));
+    if (demandes.length) setFormData((f) => (f.services.length ? f : { ...f, services: demandes }));
+  }, []);
   const [complement, setComplement] = useState<{ leadId: string | null; jeton: string | null }>({
     leadId: null,
     jeton: null,
@@ -178,6 +193,13 @@ export default function DevisPage() {
 
   // Prévient le visiteur des frais avant qu'il envoie, plutôt qu'au téléphone.
   const zone = situer(formData.postalCode, formData.city);
+  const avecDepannage = formData.services.includes(SERVICE_DEPANNAGE);
+  const autresTravaux = formData.services.some((s) => s !== SERVICE_DEPANNAGE);
+  // Le dépannage a sa propre limite (20 km, sans exception) ; les 150 € ne
+  // concernent que les autres travaux, ou une demande dont les services ne
+  // sont pas encore choisis.
+  const alerteDepannage = Boolean(zone && avecDepannage && depannageHorsZone(zone));
+  const alerteTravaux = Boolean(zone?.horsZone && (autresTravaux || !avecDepannage));
 
   // Affiché après une première tentative d'envoi, et mis à jour à chaque choix.
   const manques = tentative ? choixManquants(formData).map((m) => m.texte) : [];
@@ -385,7 +407,7 @@ export default function DevisPage() {
                     />
                   </div>
                 </div>
-                {zone?.horsZone && (
+                {zone && alerteTravaux && (
                   <p
                     role="status"
                     className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
@@ -445,6 +467,18 @@ export default function DevisPage() {
                   />
                 ))}
               </div>
+              {zone && alerteDepannage && (
+                <p
+                  role="status"
+                  className="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+                >
+                  Nous ne faisons les dépannages que dans un rayon de {RAYON_DEPANNAGE_KM} km autour de
+                  Lisses, et {zone.commune ?? "votre commune"} est à {decrireDistance(zone)}.{" "}
+                  {autresTravaux
+                    ? "Pour le dépannage, nous ne pourrons pas nous déplacer ; pour vos autres travaux, envoyez-nous votre demande."
+                    : "Nous ne pourrons malheureusement pas nous déplacer pour ce dépannage."}
+                </p>
+              )}
             </div>
 
             {/* Qualification — facultatif, un tap par question */}

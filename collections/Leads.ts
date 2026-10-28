@@ -6,7 +6,14 @@ import {
   SERVICES,
   optionsPayload,
 } from '../lib/catalogue-projet'
-import { FRAIS_HORS_ZONE_HT, RAYON_KM, situer } from '../lib/zone'
+import {
+  FRAIS_HORS_ZONE_HT,
+  RAYON_DEPANNAGE_KM,
+  RAYON_KM,
+  SERVICE_DEPANNAGE,
+  depannageHorsZone,
+  situer,
+} from '../lib/zone'
 
 /**
  * Leads — chaque demande envoyée depuis le site (page devis ou accueil).
@@ -48,10 +55,12 @@ export const Leads: CollectionConfig = {
         const cp = data?.postalCode ?? originalDoc?.postalCode
         const ville = data?.city ?? originalDoc?.city ?? ''
         const zone = cp ? situer(String(cp), String(ville)) : null
+        const services: string[] = data?.services ?? originalDoc?.services ?? []
         return {
           ...data,
           distanceKm: zone?.km ?? null,
           horsZone: zone?.horsZone ?? false,
+          depannageHorsZone: Boolean(zone && services.includes(SERVICE_DEPANNAGE) && depannageHorsZone(zone)),
         }
       },
     ],
@@ -132,6 +141,15 @@ export const Leads: CollectionConfig = {
                   admin: {
                     readOnly: true,
                     description: `Déplacement et devis facturés ${FRAIS_HORS_ZONE_HT} € HT, offerts si le client signe.`,
+                  },
+                },
+                {
+                  name: 'depannageHorsZone',
+                  label: `Dépannage hors zone (plus de ${RAYON_DEPANNAGE_KM} km)`,
+                  type: 'checkbox',
+                  admin: {
+                    readOnly: true,
+                    description: 'Pas de déplacement pour un dépannage à cette distance.',
                   },
                 },
               ],

@@ -15,7 +15,14 @@ import {
   type ValeurService,
 } from "@/lib/catalogue-projet";
 import { creerJeton } from "@/lib/jeton-lead";
-import { FRAIS_HORS_ZONE_HT, decrireDistance, situer } from "@/lib/zone";
+import {
+  FRAIS_HORS_ZONE_HT,
+  RAYON_DEPANNAGE_KM,
+  SERVICE_DEPANNAGE,
+  decrireDistance,
+  depannageHorsZone,
+  situer,
+} from "@/lib/zone";
 
 // Logo affiché dans l'email — URL hostée (data: URI / base64 strippés par Gmail).
 // La prod tourne sur ouverture-pro.fr, le logo est servi par Next.
@@ -337,12 +344,27 @@ export async function POST(req: Request) {
 
   // Hors zone : Cédric doit le savoir avant de rappeler, pour annoncer les frais.
   const zone = data.postalCode ? situer(data.postalCode, data.city) : null;
-  if (zone?.horsZone) {
+  const depannageTropLoin = Boolean(
+    zone && data.services.includes(SERVICE_DEPANNAGE) && depannageHorsZone(zone)
+  );
+  const autresTravaux = data.services.some((s) => s !== SERVICE_DEPANNAGE);
+  if (zone?.horsZone && autresTravaux) {
     qualification.unshift({
       valeur: "hors-zone",
       label: `Hors zone · ${decrireDistance(zone)} · ${FRAIS_HORS_ZONE_HT} € HT si pas de signature`,
     });
   }
+  if (zone && depannageTropLoin) {
+    qualification.unshift({
+      valeur: "hors-zone",
+      label: `Dépannage hors zone · ${decrireDistance(zone)} · limite ${RAYON_DEPANNAGE_KM} km`,
+    });
+  }
+  const etiquetteZone = depannageTropLoin
+    ? "[Dépannage hors zone] "
+    : zone?.horsZone && autresTravaux
+      ? "[Hors zone] "
+      : "";
 
   const provenanceLabel = data.provenance?.source ?? "Provenance inconnue";
   const detailsProvenance = [
@@ -361,7 +383,7 @@ export async function POST(req: Request) {
     .join(" · ");
 
   const lieuSubject = `${data.postalCode} ${data.city}`.trim();
-  const subject = `${zone?.horsZone ? "[Hors zone] " : ""}Nouvelle demande — ${fullName}${
+  const subject = `${etiquetteZone}Nouvelle demande — ${fullName}${
     resumeSubject ? ` — ${resumeSubject}` : ""
   }${lieuSubject ? ` (${lieuSubject})` : ""}`;
 
