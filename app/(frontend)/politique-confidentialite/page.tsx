@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function PolitiqueConfidentialitePage() {
   return (
-    <LegalLayout title="Politique de confidentialité" updatedAt="5 juin 2026">
+    <LegalLayout title="Politique de confidentialité" updatedAt="14 octobre 2026">
       <p className="text-muted-foreground">
         La présente politique de confidentialité décrit comment{" "}
         {COMPANY.name} collecte, utilise, conserve et protège vos données
@@ -63,7 +63,21 @@ export default function PolitiqueConfidentialitePage() {
           <li>Services concernés (fenêtres, portes, volets, etc.)</li>
           <li>Description libre du projet</li>
           <li>Mode de contact préféré (email, téléphone, WhatsApp)</li>
+          <li>
+            Si vous les renseignez : raisons des travaux, matériaux souhaités,
+            budget approximatif, échéance du projet, situation (propriétaire,
+            locataire, copropriété), nombre d&apos;ouvertures concernées et
+            la manière dont vous nous avez connus
+          </li>
         </ul>
+        <p>
+          Nous enregistrons également, avec votre demande, la manière dont vous
+          êtes arrivé sur le site : moteur de recherche, annonce Google Ads
+          (campagne, mot-clé recherché et identifiant de clic), réseau social,
+          site référent ou accès direct, ainsi que la page d&apos;arrivée. Les
+          clics sur nos numéros de téléphone et sur WhatsApp sont enregistrés de
+          la même manière, sans aucune donnée permettant de vous identifier.
+        </p>
         <p>
           Aucune donnée sensible au sens du RGPD (origine, opinions politiques,
           religion, santé, etc.) n&apos;est collectée ni traitée.
@@ -81,6 +95,10 @@ export default function PolitiqueConfidentialitePage() {
             Gérer la relation commerciale en cas de réalisation des travaux
           </li>
           <li>Respecter nos obligations légales et comptables</li>
+          <li>
+            Mesurer l&apos;efficacité de nos canaux de communication et de nos
+            annonces, pour savoir lesquels nous amènent réellement des demandes
+          </li>
         </ul>
         <p>
           Vos données ne sont jamais utilisées à des fins de prospection
@@ -94,6 +112,13 @@ export default function PolitiqueConfidentialitePage() {
           (article 6.1.a du RGPD), donné par la soumission volontaire du
           formulaire de devis, et sur l&apos;<strong>exécution de mesures
           précontractuelles</strong> prises à votre demande (article 6.1.b du RGPD).
+        </p>
+        <p>
+          L&apos;enregistrement de la provenance de votre demande et des clics
+          sur nos numéros repose sur notre <strong>intérêt légitime</strong> à
+          mesurer l&apos;efficacité de nos canaux de communication (article 6.1.f
+          du RGPD). Les cookies publicitaires Google Ads ne sont déposés
+          qu&apos;avec votre <strong>consentement</strong> (voir section 11).
         </p>
       </LegalSection>
 
@@ -131,6 +156,31 @@ export default function PolitiqueConfidentialitePage() {
               voir leur politique
             </a>
           </li>
+          <li>
+            <strong>Neon</strong> — hébergement de la base de données où sont
+            enregistrées les demandes reçues par le site{" "}
+            <a
+              href="https://neon.com/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              voir leur politique
+            </a>
+          </li>
+          <li>
+            <strong>Google Ireland Limited</strong> — mesure de
+            l&apos;efficacité de nos annonces Google Ads, uniquement si vous
+            avez accepté les cookies publicitaires{" "}
+            <a
+              href="https://policies.google.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              voir leur politique
+            </a>
+          </li>
         </ul>
         <p>
           Ces sous-traitants sont contractuellement tenus à un niveau de
@@ -153,6 +203,10 @@ export default function PolitiqueConfidentialitePage() {
           <li>
             Les emails de notification sont automatiquement archivés selon la
             politique du fournisseur de messagerie
+          </li>
+          <li>
+            <strong>13 mois</strong> pour les clics sur nos numéros de téléphone
+            et sur WhatsApp
           </li>
         </ul>
         <p>
@@ -256,16 +310,28 @@ export default function PolitiqueConfidentialitePage() {
 
       <LegalSection title="11. Cookies">
         <p>
-          Le site ouverture-pro.fr utilise un nombre minimal de cookies,
-          uniquement à des fins de mesure d&apos;audience anonymisée via{" "}
-          <strong>Vercel Analytics</strong>. Ces cookies ne permettent
-          ni de vous identifier personnellement, ni de vous traquer entre
-          sites.
+          <strong>Sans votre accord</strong>, le site n&apos;utilise que des
+          traceurs exemptés de consentement au sens de la délibération CNIL
+          n°2020-091 : une mesure d&apos;audience anonymisée via{" "}
+          <strong>Vercel Analytics</strong>, la mémorisation de la provenance
+          de votre visite le temps de l&apos;onglet ouvert, et
+          l&apos;enregistrement de votre choix concernant les cookies.
         </p>
         <p>
-          Aucun cookie publicitaire ou de profilage n&apos;est utilisé. Aucune
-          demande de consentement n&apos;est requise pour ces cookies au sens
-          de la délibération CNIL n°2020-091.
+          <strong>Avec votre accord</strong>, nous utilisons des cookies{" "}
+          <strong>Google Ads</strong> pour mesurer l&apos;efficacité de nos
+          annonces, et nous conservons la provenance de votre visite pendant{" "}
+          <strong>90 jours</strong>, afin de rattacher une demande à
+          l&apos;annonce qui vous a fait découvrir le site. Ces cookies ont une
+          durée de vie de 13 mois au maximum. Aucun cookie de profilage
+          n&apos;est déposé à d&apos;autres fins.
+        </p>
+        <p>
+          Vous faites ce choix dans le bandeau affiché lors de votre première
+          visite. Refuser est aussi simple qu&apos;accepter, et votre choix est
+          conservé 6 mois. Vous pouvez le modifier à tout moment grâce au lien{" "}
+          <strong>« Gérer les cookies »</strong> en bas de chaque page : en cas
+          de retrait, la provenance conservée est effacée.
         </p>
       </LegalSection>
 

@@ -7,31 +7,110 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send, CheckCircle } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { provenancePourEnvoi } from "@/lib/attribution";
+import { signalerConversion } from "@/lib/conversions";
+import { GROUPES_SERVICES, SERVICES, libelle } from "@/lib/catalogue-projet";
+import { TEXTE_ZONE } from "@/lib/zone";
+import { cn } from "@/lib/utils";
+import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
+    services: [] as string[],
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [complement, setComplement] = useState<{ leadId: string | null; jeton: string | null }>({
+    leadId: null,
+    jeton: null,
+  });
   const { ref: sectionRef, isVisible } = useScrollReveal({ threshold: 0.1 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setFormData({ name: "", email: "", phone: "", message: "" });
+    setErrorMsg(null);
+
+    // Le nom est saisi d'un bloc ici : on sépare prénom et nom pour l'email.
+    const morceaux = formData.name.trim().split(/\s+/);
+    const firstName = morceaux[0] ?? "";
+    const lastName = morceaux.slice(1).join(" ");
+
+    try {
+      const res = await fetch("/api/devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email: formData.email,
+          phone: formData.phone,
+          description: formData.message,
+          services: formData.services,
+          origine: "Accueil",
+          provenance: provenancePourEnvoi(),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur lors de l'envoi");
+      }
+      const reponse = await res.json().catch(() => ({}));
+      setComplement({
+        leadId: reponse.leadId ? String(reponse.leadId) : null,
+        jeton: typeof reponse.jeton === "string" ? reponse.jeton : null,
+      });
+      signalerConversion("contact");
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", phone: "", services: [], message: "" });
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de l'envoi. Réessayez ou appelez-nous au 01 60 86 37 54."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const contactInfo = [
-    { icon: Phone, label: "Téléphone", value: "01 60 86 37 54 / 07 71 74 20 83" },
-    { icon: Mail, label: "Email", value: "contact@ouvertures-pro.fr" },
-    { icon: MapPin, label: "Adresse", value: "22 bis rue des Malines, 91090 Lisses" },
+  // Chaque coordonnée est actionnable d'un tap : c'est ce qui transforme une
+  // visite mobile en appel.
+  const contactInfo: {
+    icon: typeof Phone;
+    label: string;
+    liens: { texte: string; href?: string }[];
+  }[] = [
+    {
+      icon: Phone,
+      label: "Téléphone",
+      liens: [
+        { texte: "01 60 86 37 54", href: "tel:+33160863754" },
+        { texte: "07 71 74 20 83", href: "tel:+33771742083" },
+      ],
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      liens: [
+        { texte: "contact@ouvertures-pro.fr", href: "mailto:contact@ouvertures-pro.fr" },
+      ],
+    },
+    {
+      icon: MapPin,
+      label: "Adresse",
+      liens: [
+        {
+          texte: "22 bis rue des Malines, 91090 Lisses",
+          href: "https://maps.google.com/?q=22+bis+rue+des+Malines+91090+Lisses",
+        },
+      ],
+    },
   ];
 
   return (
@@ -70,7 +149,26 @@ export function ContactSection() {
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{item.label}</p>
-                      <p className="text-muted-foreground">{item.value}</p>
+                      <p className="text-muted-foreground">
+                        {item.liens.map((lien, i) => (
+                          <span key={lien.texte}>
+                            {i > 0 && " / "}
+                            {lien.href ? (
+                              <a
+                                href={lien.href}
+                                {...(lien.href.startsWith("http")
+                                  ? { target: "_blank", rel: "noopener noreferrer" }
+                                  : {})}
+                                className="hover:text-primary underline-offset-2 hover:underline transition-colors"
+                              >
+                                {lien.texte}
+                              </a>
+                            ) : (
+                              lien.texte
+                            )}
+                          </span>
+                        ))}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -83,7 +181,7 @@ export function ContactSection() {
                 Zone d&apos;Intervention
               </h3>
               <p className="text-muted-foreground mb-4">
-                Nous intervenons dans toute l&apos;Île-de-France et ses environs (Essonne, Hauts-de-Seine, Val-de-Marne...).
+                Nous intervenons en Essonne et alentours. {TEXTE_ZONE}
               </p>
               <div className="bg-card rounded-xl overflow-hidden h-48 border border-border">
                 <iframe
@@ -107,7 +205,7 @@ export function ContactSection() {
             </h3>
 
             {isSubmitted ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center animate-reveal-scale">
                   <CheckCircle className="w-10 h-10 text-green-500" />
                 </div>
@@ -117,6 +215,9 @@ export function ContactSection() {
                 <p className="text-muted-foreground mb-6">
                   Nous vous répondrons dans les plus brefs délais.
                 </p>
+                <div className="mb-6">
+                  <QuestionsApresEnvoi leadId={complement.leadId} jeton={complement.jeton} compact />
+                </div>
                 <Button
                   variant="outline"
                   onClick={() => setIsSubmitted(false)}
@@ -157,11 +258,67 @@ export function ContactSection() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
                       placeholder="06 12 34 56 78"
                       className="input-animated"
                     />
                   </div>
                 </div>
+                {/* Replié par défaut pour garder le formulaire court ; plusieurs choix possibles. */}
+                <details className="group rounded-md border border-input bg-background">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm [&::-webkit-details-marker]:hidden">
+                    <span>
+                      <span className="font-medium text-foreground">Votre projet concerne</span>{" "}
+                      <span className="text-muted-foreground">(facultatif)</span>
+                      {formData.services.length > 0 && (
+                        <span className="mt-0.5 block text-primary">
+                          {formData.services.map((v) => libelle(SERVICES, v)).join(", ")}
+                        </span>
+                      )}
+                    </span>
+                    <span aria-hidden className="text-muted-foreground transition-transform group-open:rotate-180">
+                      ▾
+                    </span>
+                  </summary>
+                  <div className="space-y-3 border-t border-input px-3 pb-3 pt-3">
+                    {GROUPES_SERVICES.map((groupe) => (
+                      <div key={groupe.titre}>
+                        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {groupe.titre}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {groupe.options.map((o) => {
+                            const actif = formData.services.includes(o.value);
+                            return (
+                              <button
+                                key={o.value}
+                                type="button"
+                                aria-pressed={actif}
+                                onClick={() =>
+                                  setFormData((f) => ({
+                                    ...f,
+                                    services: actif
+                                      ? f.services.filter((v) => v !== o.value)
+                                      : [...f.services, o.value],
+                                  }))
+                                }
+                                className={cn(
+                                  "rounded-md border px-2.5 py-1 text-xs transition-colors",
+                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                  actif
+                                    ? "border-primary bg-primary/10 font-medium text-primary"
+                                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                                )}
+                              >
+                                {o.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
                   <Textarea
@@ -174,6 +331,14 @@ export function ContactSection() {
                     className="input-animated"
                   />
                 </div>
+                {errorMsg && (
+                  <p
+                    role="alert"
+                    className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2"
+                  >
+                    {errorMsg}
+                  </p>
+                )}
                 <Button
                   type="submit"
                   className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base btn-shine"

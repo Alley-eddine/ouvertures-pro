@@ -1,16 +1,32 @@
 import { NextResponse } from "next/server";
+import { getPayload } from "payload";
 import { Resend } from "resend";
+import config from "@payload-config";
+import {
+  CONNAISSANCES,
+  MATERIAUX,
+  MOTIVATIONS,
+  SERVICES,
+  filtrer,
+  libelle,
+  type ValeurConnaissance,
+  type ValeurMateriau,
+  type ValeurMotivation,
+  type ValeurService,
+} from "@/lib/catalogue-projet";
+import { creerJeton } from "@/lib/jeton-lead";
+import {
+  FRAIS_HORS_ZONE_HT,
+  RAYON_DEPANNAGE_KM,
+  SERVICE_DEPANNAGE,
+  decrireDistance,
+  depannageHorsZone,
+  situer,
+} from "@/lib/zone";
 
 // Logo affiché dans l'email — URL hostée (data: URI / base64 strippés par Gmail).
 // La prod tourne sur ouverture-pro.fr, le logo est servi par Next.
 const LOGO_URL = "https://ouverture-pro.fr/images/logofinal.png";
-
-const SERVICE_LABELS: Record<string, string> = {
-  fenetres: "Fenêtres",
-  portes: "Portes",
-  volets: "Volets",
-  reparation: "Réparation",
-};
 
 const PROJECT_TYPE_LABELS: Record<string, string> = {
   neuf: "Construction neuve",
@@ -24,6 +40,53 @@ const CONTACT_PREF_LABELS: Record<string, string> = {
   whatsapp: "WhatsApp",
 };
 
+// Qualification : renseignée côté formulaire, facultative.
+const BUDGET_LABELS: Record<string, string> = {
+  "moins-2000": "Budget < 2 000 €",
+  "2000-5000": "Budget 2 000 – 5 000 €",
+  "5000-10000": "Budget 5 000 – 10 000 €",
+  "plus-10000": "Budget > 10 000 €",
+  inconnu: "Budget non défini",
+};
+
+const ECHEANCE_LABELS: Record<string, string> = {
+  "des-que-possible": "Dès que possible",
+  "1-3-mois": "Sous 1 à 3 mois",
+  "3-6-mois": "Sous 3 à 6 mois",
+  renseignement: "Se renseigne",
+};
+
+const SITUATION_LABELS: Record<string, string> = {
+  proprietaire: "Propriétaire",
+  locataire: "Locataire",
+  copropriete: "Copropriété",
+};
+
+const NB_OUVERTURES_LABELS: Record<string, string> = {
+  "1-2": "1 à 2 ouvertures",
+  "3-5": "3 à 5 ouvertures",
+  "6-10": "6 à 10 ouvertures",
+  "plus-10": "Plus de 10 ouvertures",
+};
+
+/** Réponses qui signalent un projet à rappeler en priorité. */
+const QUALIFICATION_CHAUDE = new Set([
+  "5000-10000",
+  "plus-10000",
+  "des-que-possible",
+  "1-3-mois",
+]);
+
+type Provenance = {
+  source?: string;
+  sourceKey?: string;
+  campagne?: string;
+  motCle?: string;
+  gclid?: string;
+  referent?: string;
+  pageArrivee?: string;
+};
+
 type DevisPayload = {
   firstName: string;
   lastName: string;
@@ -33,9 +96,18 @@ type DevisPayload = {
   city: string;
   postalCode: string;
   projectType: string;
-  services: string[];
+  services: ValeurService[];
+  motivations: ValeurMotivation[];
+  materiaux: ValeurMateriau[];
+  sourceDeclaree: ValeurConnaissance | "";
   description: string;
   preferredContact: string;
+  budget: string;
+  echeance: string;
+  situation: string;
+  nbOuvertures: string;
+  origine: string;
+  provenance: Provenance | null;
 };
 
 function escapeHtml(s: string): string {
@@ -56,15 +128,13 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
     return { ok: false, error: "Invalid payload" };
   }
   const b = body as Record<string, unknown>;
-  const required: Array<keyof DevisPayload> = [
-    "firstName",
-    "lastName",
-    "email",
-    "phone",
-    "city",
-    "postalCode",
-    "projectType",
-  ];
+  // Le formulaire court de la page d'accueil ne demande ni adresse ni type de
+  // projet : on n'exige que de quoi rappeler la personne.
+  const origine = texte(b.origine) || "Page devis";
+  const required: Array<keyof DevisPayload> =
+    origine === "Accueil"
+      ? ["firstName", "email", "phone"]
+      : ["firstName", "lastName", "email", "phone", "city", "postalCode", "projectType", "echeance"];
   for (const k of required) {
     if (typeof b[k] !== "string" || (b[k] as string).trim() === "") {
       return { ok: false, error: `Missing or invalid field: ${k}` };
@@ -72,6 +142,10 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
   }
   if (!Array.isArray(b.services)) {
     return { ok: false, error: "services must be an array" };
+  }
+  const services = filtrer(SERVICES, b.services);
+  if (origine !== "Accueil" && services.length === 0) {
+    return { ok: false, error: "Choisissez au moins un service." };
   }
   // Basic email format check
   const emailStr = b.email as string;
@@ -81,20 +155,116 @@ function validatePayload(body: unknown): { ok: true; data: DevisPayload } | { ok
   return {
     ok: true,
     data: {
-      firstName: (b.firstName as string).trim(),
-      lastName: (b.lastName as string).trim(),
+      firstName: texte(b.firstName),
+      lastName: texte(b.lastName),
       email: emailStr.trim(),
-      phone: (b.phone as string).trim(),
-      address: typeof b.address === "string" ? b.address.trim() : "",
-      city: (b.city as string).trim(),
-      postalCode: (b.postalCode as string).trim(),
-      projectType: (b.projectType as string).trim(),
-      services: (b.services as unknown[]).filter((s): s is string => typeof s === "string"),
+      phone: texte(b.phone),
+      address: texte(b.address),
+      city: texte(b.city),
+      postalCode: texte(b.postalCode),
+      projectType: texte(b.projectType),
+      services,
+      motivations: filtrer(MOTIVATIONS, b.motivations),
+      materiaux: filtrer(MATERIAUX, b.materiaux),
+      sourceDeclaree: filtrer(CONNAISSANCES, [b.sourceDeclaree])[0] ?? "",
       description: typeof b.description === "string" ? b.description.trim() : "",
       preferredContact:
         typeof b.preferredContact === "string" ? b.preferredContact.trim() : "email",
+      budget: texte(b.budget),
+      echeance: texte(b.echeance),
+      situation: texte(b.situation),
+      nbOuvertures: texte(b.nbOuvertures),
+      origine,
+      provenance: lireProvenance(b.provenance),
     },
   };
+}
+
+function texte(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+/** La provenance vient du navigateur : on ne garde que des champs texte courts. */
+function lireProvenance(v: unknown): Provenance | null {
+  if (typeof v !== "object" || v === null) return null;
+  const p = v as Record<string, unknown>;
+  const coupe = (x: unknown) => (typeof x === "string" ? x.trim().slice(0, 300) : undefined);
+  const out: Provenance = {
+    source: coupe(p.source),
+    sourceKey: coupe(p.sourceKey),
+    campagne: coupe(p.campagne),
+    motCle: coupe(p.motCle),
+    gclid: coupe(p.gclid),
+    referent: coupe(p.referent),
+    pageArrivee: coupe(p.pageArrivee),
+  };
+  return out.source ? out : null;
+}
+
+/** Garde une valeur seulement si elle fait partie des options de la collection. */
+function choix<T extends string>(v: string | undefined, autorises: readonly T[]): T | undefined {
+  return autorises.includes(v as T) ? (v as T) : undefined;
+}
+
+const SOURCE_KEYS = ["google-ads", "gbp", "seo", "social", "ia", "referent", "campagne", "direct"] as const;
+
+/**
+ * Enregistre la demande dans l'admin Payload. Ne lève jamais : si la base est
+ * indisponible, l'email part quand même — on ne perd pas un lead pour ça.
+ * Renvoie l'identifiant du lead, ou null si l'enregistrement a échoué.
+ */
+async function enregistrerLead(data: DevisPayload, userAgent: string | null): Promise<string | null> {
+  try {
+    const payload = await getPayload({ config });
+    const lead = await payload.create({
+      collection: "leads",
+      overrideAccess: true,
+      data: {
+        origine: data.origine === "Accueil" ? "accueil" : "devis",
+        firstName: data.firstName,
+        lastName: data.lastName || undefined,
+        email: data.email,
+        phone: data.phone,
+        address: data.address || undefined,
+        postalCode: data.postalCode || undefined,
+        city: data.city || undefined,
+        preferredContact: choix(data.preferredContact, ["email", "phone", "whatsapp"] as const),
+        projectType: choix(data.projectType, ["neuf", "renovation", "remplacement"] as const),
+        services: data.services,
+        motivations: data.motivations,
+        materiaux: data.materiaux,
+        sourceDeclaree: data.sourceDeclaree || undefined,
+        description: data.description || undefined,
+        budget: choix(data.budget, ["moins-2000", "2000-5000", "5000-10000", "plus-10000", "inconnu"] as const),
+        echeance: choix(data.echeance, ["des-que-possible", "1-3-mois", "3-6-mois", "renseignement"] as const),
+        situation: choix(data.situation, ["proprietaire", "locataire", "copropriete"] as const),
+        nbOuvertures: choix(data.nbOuvertures, ["1-2", "3-5", "6-10", "plus-10"] as const),
+        sourceKey: choix(data.provenance?.sourceKey, SOURCE_KEYS),
+        source: data.provenance?.source,
+        campagne: data.provenance?.campagne,
+        motCle: data.provenance?.motCle,
+        gclid: data.provenance?.gclid,
+        referent: data.provenance?.referent,
+        pageArrivee: data.provenance?.pageArrivee,
+        userAgent: userAgent?.slice(0, 300) || undefined,
+        status: "new",
+        submittedAt: new Date().toISOString(),
+      },
+    });
+    return String(lead.id);
+  } catch (err) {
+    console.error("[devis] Lead non enregistré dans l'admin", err);
+    return null;
+  }
+}
+
+function jetonOuNull(leadId: string): string | null {
+  try {
+    return creerJeton(leadId);
+  } catch (err) {
+    console.error("[devis] Jeton de complément non créé", err);
+    return null;
+  }
 }
 
 const SITE_URL =
@@ -116,24 +286,6 @@ export async function POST(req: Request) {
   const from = process.env.RESEND_FROM_EMAIL; // e.g. "Ouvertures Pro <devis@ouverture-pro.fr>"
   const toRaw = process.env.DEVIS_TO_EMAIL; // single email OR comma-separated list
 
-  if (!apiKey || !from || !toRaw) {
-    console.error("[devis] Missing env vars", {
-      hasKey: !!apiKey,
-      hasFrom: !!from,
-      hasTo: !!toRaw,
-    });
-    return NextResponse.json(
-      { error: "Email service not configured" },
-      { status: 500 }
-    );
-  }
-
-  // Support multi-recipient: "a@x.com, b@y.com" → ["a@x.com", "b@y.com"]
-  const to = toRaw
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-
   let body: unknown;
   try {
     body = await req.json();
@@ -147,15 +299,148 @@ export async function POST(req: Request) {
   }
   const data = result.data;
 
-  const servicesLabels = data.services.map((s) => SERVICE_LABELS[s] ?? s).join(", ");
-  const projectTypeLabel = PROJECT_TYPE_LABELS[data.projectType] ?? data.projectType;
+  // L'admin passe en premier : c'est le filet de sécurité si l'email échoue.
+  const leadId = await enregistrerLead(data, req.headers.get("user-agent"));
+  // Permet au visiteur de compléter sa demande sur la page de remerciement.
+  const jeton = leadId ? jetonOuNull(leadId) : null;
+  const lienAdmin = leadId ? `${SITE_URL}/admin/collections/leads/${leadId}` : null;
+
+  if (!apiKey || !from || !toRaw) {
+    console.error("[devis] Missing env vars", {
+      hasKey: !!apiKey,
+      hasFrom: !!from,
+      hasTo: !!toRaw,
+    });
+    // Sans email, la demande n'est pas perdue si elle est dans l'admin.
+    return leadId
+      ? NextResponse.json({ ok: true, leadId, jeton, email: "non configuré" })
+      : NextResponse.json({ error: "Email service not configured" }, { status: 500 });
+  }
+
+  // Support multi-recipient: "a@x.com, b@y.com" → ["a@x.com", "b@y.com"]
+  const to = toRaw
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+
+  const servicesLabels = data.services.map((s) => libelle(SERVICES, s)).join(", ");
+  const motivationsLabels = data.motivations.map((m) => libelle(MOTIVATIONS, m)).join(", ");
+  const materiauxLabels = data.materiaux.map((m) => libelle(MATERIAUX, m)).join(", ");
+  const sourceDeclareeLabel = data.sourceDeclaree ? libelle(CONNAISSANCES, data.sourceDeclaree) : "";
+  const projectTypeLabel =
+    PROJECT_TYPE_LABELS[data.projectType] ?? data.projectType ?? "";
+  const lieuLabel =
+    `${data.postalCode} ${data.city}`.trim() || "Non précisé";
   const contactPrefLabel = CONTACT_PREF_LABELS[data.preferredContact] ?? data.preferredContact;
   const fullName = `${data.firstName} ${data.lastName}`;
 
-  const subject = `Nouvelle demande de devis — ${fullName} (${data.postalCode} ${data.city})`;
+  // Qualification : on ne montre que ce que le visiteur a réellement renseigné.
+  const qualification = [
+    { valeur: data.budget, label: BUDGET_LABELS[data.budget] },
+    { valeur: data.echeance, label: ECHEANCE_LABELS[data.echeance] },
+    { valeur: data.situation, label: SITUATION_LABELS[data.situation] },
+    { valeur: data.nbOuvertures, label: NB_OUVERTURES_LABELS[data.nbOuvertures] },
+  ].filter((q) => Boolean(q.label));
+
+  // Hors zone : Cédric doit le savoir avant de rappeler, pour annoncer les frais.
+  const zone = data.postalCode ? situer(data.postalCode, data.city) : null;
+  const depannageTropLoin = Boolean(
+    zone && data.services.includes(SERVICE_DEPANNAGE) && depannageHorsZone(zone)
+  );
+  const autresTravaux = data.services.some((s) => s !== SERVICE_DEPANNAGE);
+  if (zone?.horsZone && autresTravaux) {
+    qualification.unshift({
+      valeur: "hors-zone",
+      label: `Hors zone · ${decrireDistance(zone)} · ${FRAIS_HORS_ZONE_HT} € HT si pas de signature`,
+    });
+  }
+  if (zone && depannageTropLoin) {
+    qualification.unshift({
+      valeur: "hors-zone",
+      label: `Dépannage hors zone · ${decrireDistance(zone)} · limite ${RAYON_DEPANNAGE_KM} km`,
+    });
+  }
+  const etiquetteZone = depannageTropLoin
+    ? "[Dépannage hors zone] "
+    : zone?.horsZone && autresTravaux
+      ? "[Hors zone] "
+      : "";
+
+  const provenanceLabel = data.provenance?.source ?? "Provenance inconnue";
+  const detailsProvenance = [
+    data.provenance?.campagne ? `Campagne : ${data.provenance.campagne}` : "",
+    data.provenance?.motCle ? `Mot-clé : ${data.provenance.motCle}` : "",
+    data.provenance?.gclid ? "Clic publicitaire identifié (gclid)" : "",
+    sourceDeclareeLabel ? `Selon le client : ${sourceDeclareeLabel}` : "",
+  ].filter(Boolean);
+
+  const resumeSubject = [
+    servicesLabels,
+    NB_OUVERTURES_LABELS[data.nbOuvertures],
+    BUDGET_LABELS[data.budget],
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const lieuSubject = `${data.postalCode} ${data.city}`.trim();
+  const subject = `${etiquetteZone}Nouvelle demande — ${fullName}${
+    resumeSubject ? ` — ${resumeSubject}` : ""
+  }${lieuSubject ? ` (${lieuSubject})` : ""}`;
+
+  const chipsHtml = qualification
+    .map((q) => {
+      const chaude = QUALIFICATION_CHAUDE.has(q.valeur);
+      const alerte = q.valeur === "hors-zone";
+      const fond = alerte ? "#fef3c7" : chaude ? COLOR_SECONDARY : "#ffffff";
+      const texteCouleur = alerte ? "#92400e" : chaude ? "#ffffff" : COLOR_MUTED;
+      const bordure = alerte ? "#f59e0b" : chaude ? COLOR_SECONDARY : COLOR_BORDER;
+      return `<span style="display: inline-block; margin: 0 6px 6px 0; padding: 5px 11px; border: 1px solid ${bordure}; border-radius: 999px; background: ${fond}; color: ${texteCouleur}; font-size: 13px; font-weight: ${
+        chaude || alerte ? "700" : "500"
+      };">${escapeHtml(q.label)}</span>`;
+    })
+    .join("");
+
+  const blocProvenance = `
+          <tr>
+            <td style="padding: 16px 32px 0 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-radius: 10px; overflow: hidden;">
+                <tr>
+                  <td style="background: ${COLOR_PRIMARY_DARK}; padding: 14px 18px; text-align: center;">
+                    <p style="margin: 0; color: rgba(255,255,255,0.75); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px;">Provenance du lead</p>
+                    <p style="margin: 4px 0 0 0; color: #ffffff; font-size: 16px; font-weight: 700;">${escapeHtml(provenanceLabel)}</p>
+                    ${
+                      detailsProvenance.length
+                        ? `<p style="margin: 6px 0 0 0; color: rgba(255,255,255,0.8); font-size: 12px;">${detailsProvenance
+                            .map(escapeHtml)
+                            .join(" &nbsp;·&nbsp; ")}</p>`
+                        : ""
+                    }
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>${
+            chipsHtml
+              ? `
+          <tr>
+            <td style="padding: 16px 32px 0 32px;">${chipsHtml}</td>
+          </tr>`
+              : ""
+          }`;
 
   const text = [
     "Nouvelle demande de devis Ouvertures Pro",
+    "",
+    "── Provenance ──",
+    `Source      : ${provenanceLabel}`,
+    ...detailsProvenance.map((d) => `              ${d}`),
+    `Formulaire  : ${data.origine}`,
+    ...(lienAdmin ? [`Admin       : ${lienAdmin}`] : []),
+    "",
+    "── Qualification ──",
+    qualification.length
+      ? qualification.map((q) => `• ${q.label}`).join("\n")
+      : "(non renseignée)",
     "",
     "── Contact ──",
     `Nom         : ${fullName}`,
@@ -170,6 +455,8 @@ export async function POST(req: Request) {
     "── Projet ──",
     `Type        : ${projectTypeLabel}`,
     `Services    : ${servicesLabels || "(aucun)"}`,
+    ...(motivationsLabels ? [`Pourquoi    : ${motivationsLabels}`] : []),
+    ...(materiauxLabels ? [`Matériaux   : ${materiauxLabels}`] : []),
     "",
     "── Description ──",
     data.description || "(aucune description)",
@@ -185,7 +472,7 @@ export async function POST(req: Request) {
 <body style="margin: 0; padding: 0; background-color: ${COLOR_BG_SOFT}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: ${COLOR_FG}; line-height: 1.5;">
   <!-- Preheader (hidden text shown in inbox preview) -->
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
-    Demande de ${escapeHtml(fullName)} (${escapeHtml(data.postalCode)} ${escapeHtml(data.city)}) — ${escapeHtml(servicesLabels) || "services divers"}.
+    Demande de ${escapeHtml(fullName)}${lieuSubject ? ` (${escapeHtml(lieuSubject)})` : ""} — ${escapeHtml(provenanceLabel)}.
   </div>
 
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: ${COLOR_BG_SOFT};">
@@ -216,6 +503,8 @@ export async function POST(req: Request) {
               </p>
             </td>
           </tr>
+
+${blocProvenance}
 
           <!-- Contact block -->
           <tr>
@@ -263,7 +552,7 @@ export async function POST(req: Request) {
                         : ""
                     }
                     <p style="margin: 0; font-size: 15px; color: ${COLOR_FG}; font-weight: 600;">
-                      ${escapeHtml(data.postalCode)} ${escapeHtml(data.city)}
+                      ${escapeHtml(lieuLabel)}
                     </p>
                   </td>
                 </tr>
@@ -284,12 +573,28 @@ export async function POST(req: Request) {
                   <td style="padding: 16px 18px;">
                     <p style="margin: 0 0 8px 0; font-size: 14px;">
                       <span style="color: ${COLOR_MUTED};">Type :</span>
-                      <strong style="color: ${COLOR_FG};">${escapeHtml(projectTypeLabel)}</strong>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(projectTypeLabel) || "Non précisé"}</strong>
                     </p>
                     <p style="margin: 0; font-size: 14px;">
                       <span style="color: ${COLOR_MUTED};">Services :</span>
                       <strong style="color: ${COLOR_FG};">${escapeHtml(servicesLabels) || "(aucun)"}</strong>
-                    </p>
+                    </p>${
+                      motivationsLabels
+                        ? `
+                    <p style="margin: 8px 0 0 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Pourquoi :</span>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(motivationsLabels)}</strong>
+                    </p>`
+                        : ""
+                    }${
+                      materiauxLabels
+                        ? `
+                    <p style="margin: 8px 0 0 0; font-size: 14px;">
+                      <span style="color: ${COLOR_MUTED};">Matériaux :</span>
+                      <strong style="color: ${COLOR_FG};">${escapeHtml(materiauxLabels)}</strong>
+                    </p>`
+                        : ""
+                    }
                   </td>
                 </tr>
               </table>
@@ -344,7 +649,7 @@ export async function POST(req: Request) {
                 Ouvertures Pro
               </p>
               <p style="margin: 0 0 10px 0; color: #b0b0b0; font-size: 12px;">
-                Fenêtres, portes, volets &amp; portails — Île-de-France
+                Fenêtres, portes, volets &amp; portails — Essonne et alentours
               </p>
               <p style="margin: 0; color: #b0b0b0; font-size: 12px; line-height: 1.6;">
                 22 bis rue des Malines, 91090 Lisses<br>
@@ -357,7 +662,11 @@ export async function POST(req: Request) {
         </table>
 
         <p style="margin: 16px 0 0 0; font-size: 11px; color: ${COLOR_MUTED}; text-align: center;">
-          Email généré automatiquement depuis le formulaire devis du site
+          Email généré automatiquement — formulaire : ${escapeHtml(data.origine)}${
+            lienAdmin
+              ? `<br><a href="${escapeHtml(lienAdmin)}" style="color: ${COLOR_PRIMARY}; text-decoration: none; font-weight: 600;">Ouvrir ce lead dans l'admin →</a>`
+              : ""
+          }
         </p>
 
       </td>
@@ -379,12 +688,16 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("[devis] Resend error", error);
-      return NextResponse.json({ error: "Failed to send email" }, { status: 502 });
+      return leadId
+        ? NextResponse.json({ ok: true, leadId, jeton, email: "échec" })
+        : NextResponse.json({ error: "Failed to send email" }, { status: 502 });
     }
 
-    return NextResponse.json({ ok: true, id: sent?.id });
+    return NextResponse.json({ ok: true, id: sent?.id, leadId, jeton });
   } catch (err) {
     console.error("[devis] Unexpected error", err);
-    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+    return leadId
+      ? NextResponse.json({ ok: true, leadId, jeton, email: "échec" })
+      : NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }

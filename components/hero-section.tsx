@@ -66,7 +66,7 @@ export function HeroSection() {
               }`}
             >
               Cédric, Benjamin et Hervé — une équipe d&apos;artisans basée à Lisses (91).
-              Depuis 2018, on pose et on rénove vos menuiseries dans toute l&apos;Île-de-France.
+              Depuis 2018, on pose et on rénove vos menuiseries en Essonne et alentours.
               Devis sous 24h, conseil sans baratin.
             </p>
 

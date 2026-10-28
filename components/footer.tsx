@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook } from "lucide-react";
+import { LienGererCookies } from "@/components/lien-gerer-cookies";
 import { Button } from "@/components/ui/button";
 
 export function Footer() {
@@ -19,16 +20,27 @@ export function Footer() {
             />
             <p className="text-background/70 text-sm leading-relaxed">
               Cédric Tamoud et son équipe — artisans menuisiers à Lisses,
-              au service de l&apos;Île-de-France depuis 2018.
+              au service de l&apos;Essonne et de ses alentours depuis 2018.
             </p>
             <div className="mt-4 space-y-2 text-sm">
               <p>
                 <span className="text-background/50">Tél:</span>{" "}
-                <span className="text-background">01 60 86 37 54 / 07 71 74 20 83</span>
+                <a href="tel:+33160863754" className="text-background hover:text-primary transition-colors">
+                  01 60 86 37 54
+                </a>
+                {" / "}
+                <a href="tel:+33771742083" className="text-background hover:text-primary transition-colors">
+                  07 71 74 20 83
+                </a>
               </p>
               <p>
                 <span className="text-background/50">Email:</span>{" "}
-                <span className="text-background">contact@ouvertures-pro.fr</span>
+                <a
+                  href="mailto:contact@ouvertures-pro.fr"
+                  className="text-background hover:text-primary transition-colors"
+                >
+                  contact@ouvertures-pro.fr
+                </a>
               </p>
               <p>
                 <span className="text-background/50">Adresse:</span>{" "}
@@ -48,11 +60,11 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Navigation</h4>
             <ul className="space-y-3 text-sm text-background/70">
               {[
-                { href: "#accueil", label: "Accueil" },
-                { href: "#realisations", label: "Réalisations" },
-                { href: "#services", label: "Nos Services" },
-                { href: "#equipe", label: "L'Équipe" },
-                { href: "#contact", label: "Contact" },
+                { href: "/#accueil", label: "Accueil" },
+                { href: "/#realisations", label: "Réalisations" },
+                { href: "/#services", label: "Nos Services" },
+                { href: "/#equipe", label: "L'Équipe" },
+                { href: "/#contact", label: "Contact" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -103,6 +115,7 @@ export function Footer() {
             >
               Politique de Confidentialité
             </Link>
+            <LienGererCookies className="hover:text-background transition-colors" />
           </p>
         </div>
       </div>

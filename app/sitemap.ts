@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { PAGES_METIER } from '@/lib/pages-metier';
 
 // URL de prod hardcodee — pas d'env var pour eviter les surprises
 // (ex: NEXT_PUBLIC_SITE_URL mal renseignee qui prefixe toutes les URLs).
@@ -19,6 +20,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    ...PAGES_METIER.map((p) => ({
+      url: `${SITE_URL}/services/${p.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })),
     {
       url: `${SITE_URL}/mentions-legales`,
       lastModified: now,

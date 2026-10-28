@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -8,22 +8,146 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
-
-const services = [
-  { id: "fenetres", label: "Fenêtres" },
-  { id: "portes", label: "Portes" },
-  { id: "volets", label: "Volets" },
-  { id: "reparation", label: "Réparation" },
-];
+import { provenancePourEnvoi } from "@/lib/attribution";
+import { signalerConversion } from "@/lib/conversions";
+import { GROUPES_SERVICES, SERVICES, filtrer } from "@/lib/catalogue-projet";
+import {
+  FRAIS_HORS_ZONE_HT,
+  RAYON_DEPANNAGE_KM,
+  RAYON_KM,
+  SERVICE_DEPANNAGE,
+  decrireDistance,
+  depannageHorsZone,
+  situer,
+} from "@/lib/zone";
+import { QuestionsApresEnvoi } from "@/components/questions-apres-envoi";
+import { cn } from "@/lib/utils";
 
 const projectTypes = [
   { id: "neuf", label: "Construction neuve" },
   { id: "renovation", label: "Rénovation" },
   { id: "remplacement", label: "Remplacement à l'identique" },
 ];
+
+// Qualification : un seul tap par question, aucune saisie. Seule l'échéance est
+// obligatoire (elle a sa porte de sortie, « Je me renseigne ») : c'est elle qui
+// dit qui rappeler en premier. Pourquoi, matériau, budget et « comment vous
+// nous avez connus » sont posés après l'envoi, sur la page de remerciement.
+const echeances = [
+  { id: "des-que-possible", label: "Dès que possible" },
+  { id: "1-3-mois", label: "Sous 1 à 3 mois" },
+  { id: "3-6-mois", label: "Sous 3 à 6 mois" },
+  { id: "renseignement", label: "Je me renseigne" },
+];
+
+const situations = [
+  { id: "proprietaire", label: "Propriétaire" },
+  { id: "locataire", label: "Locataire" },
+  { id: "copropriete", label: "Copropriété" },
+];
+
+const nbOuverturesOptions = [
+  { id: "1-2", label: "1 à 2" },
+  { id: "3-5", label: "3 à 5" },
+  { id: "6-10", label: "6 à 10" },
+  { id: "plus-10", label: "Plus de 10" },
+];
+
+const classePastille = (actif: boolean) =>
+  cn(
+    "px-4 py-2 rounded-lg border text-sm transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    actif
+      ? "border-primary bg-primary/10 text-primary font-medium"
+      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+  );
+
+/** Variante à choix multiples : chaque tap ajoute ou retire l'option. */
+function ChoixMultiples({
+  id,
+  titre,
+  aide,
+  options,
+  valeurs,
+  onChange,
+}: {
+  id: string;
+  titre: string;
+  aide?: string;
+  options: readonly { value: string; label: string }[];
+  valeurs: string[];
+  onChange: (v: string[]) => void;
+}) {
+  return (
+    <div>
+      <p id={`${id}-label`} className="font-medium text-foreground mb-1">
+        {titre}
+      </p>
+      {aide && <p className="text-sm text-muted-foreground mb-3">{aide}</p>}
+      <div role="group" aria-labelledby={`${id}-label`} className={cn("flex flex-wrap gap-2", !aide && "mt-2")}>
+        {options.map((o) => {
+          const actif = valeurs.includes(o.value);
+          return (
+            <button
+              key={o.value}
+              id={`${id}-${o.value}`}
+              type="button"
+              aria-pressed={actif}
+              onClick={() =>
+                onChange(actif ? valeurs.filter((v) => v !== o.value) : [...valeurs, o.value])
+              }
+              className={classePastille(actif)}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Groupe de choix en pastilles : un tap suffit, et retaper désélectionne. */
+function ChoixPastilles({
+  id,
+  titre,
+  options,
+  valeur,
+  onChange,
+}: {
+  id: string;
+  titre: string;
+  options: { id: string; label: string }[];
+  valeur: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <p id={`${id}-label`} className="font-medium text-foreground mb-3">
+        {titre}
+      </p>
+      <div role="group" aria-labelledby={`${id}-label`} className="flex flex-wrap gap-2">
+        {options.map((o) => {
+          const actif = valeur === o.id;
+          return (
+            <button
+              key={o.id}
+              id={`${id}-${o.id}`}
+              type="button"
+              aria-pressed={actif}
+              onClick={() => onChange(actif ? "" : o.id)}
+              className={classePastille(actif)}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function DevisPage() {
   const [formData, setFormData] = useState({
@@ -38,39 +162,79 @@ export default function DevisPage() {
     services: [] as string[],
     description: "",
     preferredContact: "email",
+    echeance: "",
+    situation: "",
+    nbOuvertures: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tentative, setTentative] = useState(false);
 
-  const handleServiceChange = (serviceId: string, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        services: [...formData.services, serviceId],
-      });
-    } else {
-      setFormData({
-        ...formData,
-        services: formData.services.filter((s) => s !== serviceId),
-      });
-    }
-  };
+  // Depuis une page métier (/devis?services=volets-roulants), le service est
+  // déjà coché : le visiteur venu d'une annonce n'a rien à rechercher.
+  useEffect(() => {
+    const demandes = filtrer(SERVICES, new URLSearchParams(window.location.search).get("services")?.split(","));
+    if (demandes.length) setFormData((f) => (f.services.length ? f : { ...f, services: demandes }));
+  }, []);
+  const [complement, setComplement] = useState<{ leadId: string | null; jeton: string | null }>({
+    leadId: null,
+    jeton: null,
+  });
+
+  /** Les choix en pastilles ne sont pas des champs natifs : on les vérifie à la main. */
+  function choixManquants(d: typeof formData) {
+    return [
+      !d.projectType && { id: "section-type", texte: "le type de projet" },
+      !d.services.length && { id: "section-services", texte: "au moins un service" },
+      !d.echeance && { id: "section-echeance", texte: "la période des travaux" },
+    ].filter((m): m is { id: string; texte: string } => Boolean(m));
+  }
+
+  // Prévient le visiteur des frais avant qu'il envoie, plutôt qu'au téléphone.
+  const zone = situer(formData.postalCode, formData.city);
+  const avecDepannage = formData.services.includes(SERVICE_DEPANNAGE);
+  const autresTravaux = formData.services.some((s) => s !== SERVICE_DEPANNAGE);
+  // Le dépannage a sa propre limite (20 km, sans exception) ; les 150 € ne
+  // concernent que les autres travaux, ou une demande dont les services ne
+  // sont pas encore choisis.
+  const alerteDepannage = Boolean(zone && avecDepannage && depannageHorsZone(zone));
+  const alerteTravaux = Boolean(zone?.horsZone && (autresTravaux || !avecDepannage));
+
+  // Affiché après une première tentative d'envoi, et mis à jour à chaque choix.
+  const manques = tentative ? choixManquants(formData).map((m) => m.texte) : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const manquants = choixManquants(formData);
+    setTentative(true);
+    if (manquants.length) {
+      document.getElementById(manquants[0].id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
       const res = await fetch("/api/devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          origine: "Page devis",
+          provenance: provenancePourEnvoi(),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de l'envoi");
       }
+      const reponse = await res.json().catch(() => ({}));
+      setComplement({
+        leadId: reponse.leadId ? String(reponse.leadId) : null,
+        jeton: typeof reponse.jeton === "string" ? reponse.jeton : null,
+      });
+      signalerConversion("devis");
+      window.scrollTo(0, 0);
       setIsSubmitted(true);
     } catch (err) {
       setErrorMsg(
@@ -85,8 +249,8 @@ export default function DevisPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
+        <div className="max-w-xl w-full text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
@@ -97,7 +261,10 @@ export default function DevisPage() {
             Merci pour votre demande de devis. Notre équipe vous contactera dans les
             24-48 heures pour discuter de votre projet.
           </p>
-          <Button asChild>
+          <div className="mb-8">
+            <QuestionsApresEnvoi leadId={complement.leadId} jeton={complement.jeton} />
+          </div>
+          <Button asChild variant="outline">
             <Link href="/">Retour à l&apos;accueil</Link>
           </Button>
         </div>
@@ -240,11 +407,21 @@ export default function DevisPage() {
                     />
                   </div>
                 </div>
+                {zone && alerteTravaux && (
+                  <p
+                    role="status"
+                    className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+                  >
+                    {zone.commune ?? "Votre commune"} est à {decrireDistance(zone)} de Lisses, au-delà de
+                    notre zone de déplacement gratuit ({RAYON_KM} km). Le déplacement et le devis sont
+                    facturés {FRAIS_HORS_ZONE_HT} € HT, et <strong>offerts si vous signez le devis</strong>.
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Project Type */}
-            <div>
+            <div id="section-type" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-foreground mb-4">
                 Type de projet *
               </h2>
@@ -267,25 +444,72 @@ export default function DevisPage() {
             </div>
 
             {/* Services */}
-            <div>
-              <h2 className="text-xl font-semibold text-foreground mb-4">
+            <div id="section-services" className="scroll-mt-24">
+              <h2 className="text-xl font-semibold text-foreground mb-1">
                 Services souhaités *
               </h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {services.map((service) => (
-                  <div key={service.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={service.id}
-                      checked={formData.services.includes(service.id)}
-                      onCheckedChange={(checked) =>
-                        handleServiceChange(service.id, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={service.id} className="cursor-pointer">
-                      {service.label}
-                    </Label>
-                  </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Plusieurs choix possibles.
+              </p>
+              <div className="space-y-5">
+                {GROUPES_SERVICES.map((groupe) => (
+                  <ChoixMultiples
+                    key={groupe.titre}
+                    id={`services-${groupe.titre
+                      .normalize("NFD")
+                      .replace(/[̀-ͯ]/g, "")
+                      .toLowerCase()
+                      .replace(/\W+/g, "-")}`}
+                    titre={groupe.titre}
+                    options={groupe.options}
+                    valeurs={formData.services}
+                    onChange={(v) => setFormData({ ...formData, services: v })}
+                  />
                 ))}
+              </div>
+              {zone && alerteDepannage && (
+                <p
+                  role="status"
+                  className="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+                >
+                  Nous ne faisons les dépannages que dans un rayon de {RAYON_DEPANNAGE_KM} km autour de
+                  Lisses, et {zone.commune ?? "votre commune"} est à {decrireDistance(zone)}.{" "}
+                  {autresTravaux
+                    ? "Pour le dépannage, nous ne pourrons pas nous déplacer ; pour vos autres travaux, envoyez-nous votre demande."
+                    : "Nous ne pourrons malheureusement pas nous déplacer pour ce dépannage."}
+                </p>
+              )}
+            </div>
+
+            {/* Qualification — facultatif, un tap par question */}
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-6">
+                Votre projet
+              </h2>
+              <div className="space-y-6">
+                <div id="section-echeance" className="scroll-mt-24">
+                <ChoixPastilles
+                  id="echeance"
+                  titre="Quand souhaitez-vous faire les travaux ? *"
+                  options={echeances}
+                  valeur={formData.echeance}
+                  onChange={(v) => setFormData({ ...formData, echeance: v })}
+                />
+                </div>
+                <ChoixPastilles
+                  id="situation"
+                  titre="Vous êtes"
+                  options={situations}
+                  valeur={formData.situation}
+                  onChange={(v) => setFormData({ ...formData, situation: v })}
+                />
+                <ChoixPastilles
+                  id="nb-ouvertures"
+                  titre="Nombre d'ouvertures concernées"
+                  options={nbOuverturesOptions}
+                  valeur={formData.nbOuvertures}
+                  onChange={(v) => setFormData({ ...formData, nbOuvertures: v })}
+                />
               </div>
             </div>
 
@@ -300,7 +524,7 @@ export default function DevisPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="Décrivez votre projet : nombre de fenêtres, dimensions, matériaux souhaités, etc."
+                placeholder="Décrivez votre projet : dimensions, coloris, contraintes d'accès, etc."
                 rows={5}
               />
             </div>
@@ -337,6 +561,16 @@ export default function DevisPage() {
                 </div>
               </RadioGroup>
             </div>
+
+            {manques.length > 0 && (
+              <p role="alert" className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                Pour envoyer votre demande, indiquez{" "}
+                {manques.length > 1
+                  ? `${manques.slice(0, -1).join(", ")} et ${manques[manques.length - 1]}`
+                  : manques[0]}
+                .
+              </p>
+            )}
 
             {errorMsg && (
               <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-800">

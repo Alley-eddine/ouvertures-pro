@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { AppWindow, DoorClosed, Blinds, Warehouse, SunMedium, Fence } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
@@ -8,6 +9,7 @@ const services = [
   {
     icon: AppWindow,
     title: "Fenêtres & baies vitrées",
+    href: "/services/fenetres-et-portes",
     description: "PVC, aluminium ou mixte bois/alu. Double ou triple vitrage. On dépose les anciennes, on hisse les nouvelles, on isole.",
     image: "/images/services/pose-baie-vitree-coulissante-aluminium-noir.webp",
     alt: "Grande baie vitrée coulissante aluminium noir, vue depuis salon contemporain",
@@ -15,6 +17,7 @@ const services = [
   {
     icon: DoorClosed,
     title: "Portes d'entrée",
+    href: "/services/fenetres-et-portes",
     description: "Portes blindées, portes acier, portes vitrées. Sur mesure, avec digicode si besoin. Sécurité d'abord.",
     image: "/images/services/pose-porte-entree-vitrage-fer-forge.webp",
     alt: "Porte d'entrée bleue avec vitrage et grille en fer forgé sur façade en pierre",
@@ -22,6 +25,7 @@ const services = [
   {
     icon: Blinds,
     title: "Volets",
+    href: "/services/volets-roulants",
     description: "Volets roulants (motorisés ou solaires), volets battants, volets coulissants. On garde ce qui peut être gardé, on rénove le reste.",
     image: "/images/services/pose-volets-battants-imitation-bois.webp",
     alt: "Fenêtre PVC avec volets battants imitation bois, finition soignée",
@@ -29,6 +33,7 @@ const services = [
   {
     icon: Warehouse,
     title: "Portes de garage",
+    href: "/services/portes-de-garage",
     description: "Sectionnelles, enroulables ou battantes. Motorisation comprise. Pose en demi-journée pour la plupart des modèles.",
     image: "/images/services/pose-porte-garage-sectionnelle-rouge.webp",
     alt: "Porte de garage sectionnelle rouge motorisée avec porte d'entrée assortie",
@@ -43,6 +48,7 @@ const services = [
   {
     icon: SunMedium,
     title: "Stores & dépannage",
+    href: "/services/depannage-volets-roulants",
     description: "Stores bannes, stores intérieurs. Réparation de volets bloqués, changement de vitres, remplacement de gonds. Souvent en moins d'une heure.",
     image: "/images/services/installation-store-banne-led-terrasse.webp",
     alt: "Store banne avec éclairage LED intégré déployé sur terrasse",
@@ -103,6 +109,14 @@ export function ServicesSection() {
                 <p className="text-muted-foreground leading-relaxed text-sm">
                   {service.description}
                 </p>
+                {"href" in service && service.href && (
+                  <Link
+                    href={service.href}
+                    className="mt-4 text-sm font-medium text-primary hover:underline underline-offset-4"
+                  >
+                    En savoir plus →
+                  </Link>
+                )}
               </div>
             </div>
           ))}

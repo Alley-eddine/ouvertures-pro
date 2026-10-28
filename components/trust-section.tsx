@@ -11,7 +11,7 @@ const trustItems = [
   },
   {
     title: "Devis sous",
-    description: "Étude personnalisée gratuite, réponse rapide. On ne fait pas attendre.",
+    description: "Étude personnalisée gratuite dans un rayon de 25 km, réponse rapide. On ne fait pas attendre.",
     count: 24,
     suffix: "h",
   },
@@ -23,7 +23,7 @@ const trustItems = [
   },
   {
     title: "Au métier",
-    description: "7 ans au service de l'Île-de-France, basés à Lisses (91). Une équipe stable de trois artisans.",
+    description: "7 ans au service de l'Essonne et de ses alentours, basés à Lisses (91). Une équipe stable de trois artisans.",
     count: 7,
     suffix: " ans",
   },
