@@ -116,6 +116,16 @@ export function Footer() {
               Politique de Confidentialité
             </Link>
             <LienGererCookies className="hover:text-background transition-colors" />
+            {" | "}
+            Site réalisé par{" "}
+            <a
+              href="https://alleycom.fr/fr/realisations/ouverture-pro"
+              target="_blank"
+              rel="noopener"
+              className="hover:text-background transition-colors"
+            >
+              Alleycom
+            </a>
           </p>
         </div>
       </div>
