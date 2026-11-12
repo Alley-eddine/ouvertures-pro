@@ -23,8 +23,19 @@ const fromAddress = fromRaw.match(/<([^>]+)>/)?.[1] ?? (fromRaw || 'noreply@ouve
 export default buildConfig({
   admin: {
     user: Users.slug,
+    importMap: {
+      baseDir: dirname,
+    },
     meta: {
       titleSuffix: '— Ouvertures Pro',
+      icons: [{ rel: 'icon', url: '/favicon.ico' }],
+    },
+    components: {
+      graphics: {
+        Logo: '/components/admin/logo#Logo',
+        Icon: '/components/admin/logo#Icone',
+      },
+      beforeDashboard: ['/components/admin/tableau-de-bord#TableauDeBord'],
     },
   },
   collections: [Leads, Appels, Users],

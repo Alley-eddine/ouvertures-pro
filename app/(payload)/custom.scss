@@ -1,0 +1,353 @@
+// Habillage de l'admin aux couleurs d'Ouvertures Pro (bleu et brun du logo).
+// Les fonds et textes s'appuient sur les variables de thème de Payload pour
+// rester lisibles en mode clair comme en mode sombre.
+
+:root {
+  --op-bleu: #0098c0;
+  --op-bleu-fonce: #007192;
+  --op-brun: #966543;
+  --op-vert: #1f8a4c;
+  --op-orange: #c2610c;
+  --op-rouge: #c43c3c;
+}
+
+// --- Boutons et liens -------------------------------------------------------
+
+.btn--style-primary {
+  --bg-color: var(--op-bleu);
+  --hover-bg: var(--op-bleu-fonce);
+  --color: #fff;
+  --hover-color: #fff;
+}
+
+.nav__link.active,
+.nav__link:hover {
+  color: var(--op-bleu);
+}
+
+// --- Logo et icône ------------------------------------------------------------
+
+.op-logo {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+}
+
+.op-icone {
+  display: block;
+  height: 20px;
+  width: auto;
+}
+
+// --- Page de connexion : photo de chantier en fond -------------------------
+
+.template-minimal.login {
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgb(0 40 60 / 72%), rgb(60 35 15 / 55%)),
+    url('/images/hero/realisation-baies-vitrees-terrasse-moderne.webp') center / cover no-repeat;
+
+  .template-minimal__wrap {
+    background: var(--theme-elevation-0);
+    border-radius: 16px;
+    padding: 40px 36px;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 35%);
+  }
+
+  .login__brand {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+}
+
+// --- Pastilles (liste des leads et tableau de bord) ----------------------------
+
+.op-pastille {
+  --teinte: var(--theme-elevation-500);
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--teinte);
+  background: color-mix(in srgb, var(--teinte) 14%, transparent);
+
+  &--new {
+    --teinte: var(--op-bleu);
+  }
+  &--contacted {
+    --teinte: var(--op-brun);
+  }
+  &--quoted {
+    --teinte: #7a4fc4;
+  }
+  &--won {
+    --teinte: var(--op-vert);
+  }
+  &--lost,
+  &--spam {
+    --teinte: var(--theme-elevation-450);
+  }
+  &--spam {
+    text-decoration: line-through;
+  }
+  &--hors-zone {
+    --teinte: var(--op-orange);
+    margin-left: 6px;
+  }
+  &--ads {
+    --teinte: #1a73e8;
+  }
+}
+
+.op-canal {
+  font-size: 13px;
+}
+
+.op-vide {
+  color: var(--theme-elevation-400);
+}
+
+.op-tel {
+  color: var(--op-bleu);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// --- Tableau de bord ---------------------------------------------------------
+
+.op-tdb {
+  margin-bottom: 40px;
+
+  &__entete {
+    margin-bottom: 20px;
+
+    h2 {
+      margin: 0 0 4px;
+    }
+    p {
+      margin: 0;
+      color: var(--theme-elevation-500);
+    }
+  }
+
+  &__chiffres {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  &__colonnes {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 1100px) {
+    &__chiffres {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    &__colonnes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    &__chiffres {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+.op-carte {
+  --accent: var(--op-bleu);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--theme-elevation-150);
+  border-top: 4px solid var(--accent);
+  background: var(--theme-elevation-0);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+
+  &:is(a):hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  &__valeur {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--accent);
+  }
+
+  &__libelle {
+    font-size: 13px;
+    color: var(--theme-elevation-600);
+  }
+
+  &--alerte {
+    --accent: var(--op-rouge);
+
+    &[data-vide='true'] {
+      --accent: var(--op-vert);
+    }
+  }
+
+  &--gain {
+    --accent: var(--op-vert);
+  }
+}
+
+.op-bloc {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--theme-elevation-150);
+  background: var(--theme-elevation-0);
+
+  h3 {
+    margin: 0 0 14px;
+    font-size: 16px;
+  }
+
+  &__vide {
+    margin: 0;
+    color: var(--theme-elevation-500);
+  }
+
+  &__lien {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--op-bleu);
+    font-weight: 600;
+  }
+
+  &__note {
+    margin: 16px 0 0;
+    font-size: 12px;
+    color: var(--theme-elevation-500);
+  }
+}
+
+.op-rappels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__ligne {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 3px solid var(--op-bleu);
+
+    & + & {
+      margin-top: 6px;
+    }
+
+    &:nth-child(odd) {
+      background: var(--theme-elevation-50);
+    }
+
+    &--retard {
+      border-left-color: var(--op-rouge);
+
+      .op-rappels__date {
+        color: var(--op-rouge);
+        font-weight: 600;
+      }
+    }
+
+    @media (max-width: 560px) {
+      grid-template-columns: minmax(0, 1fr) auto;
+
+      .op-rappels__date {
+        grid-column: 1 / -1;
+        order: 3;
+      }
+    }
+  }
+
+  &__nom {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--op-bleu);
+    }
+  }
+
+  &__ville {
+    font-weight: 400;
+    color: var(--theme-elevation-500);
+  }
+
+  &__date {
+    font-size: 12px;
+    color: var(--theme-elevation-500);
+    white-space: nowrap;
+  }
+}
+
+.op-canaux {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 9.5em minmax(0, 1fr) 2em;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+
+    & + li {
+      margin-top: 10px;
+    }
+  }
+
+  &__barre {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--theme-elevation-100);
+    overflow: hidden;
+  }
+
+  &__plein {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--op-brun);
+
+    &--ads {
+      background: #1a73e8;
+    }
+  }
+
+  &__nombre {
+    text-align: right;
+    font-weight: 700;
+  }
+}

@@ -30,7 +30,7 @@ export const Leads: CollectionConfig = {
   labels: { singular: 'Lead', plural: 'Leads' },
   admin: {
     useAsTitle: 'nomComplet',
-    defaultColumns: ['nomComplet', 'city', 'horsZone', 'sourceKey', 'echeance', 'status', 'submittedAt'],
+    defaultColumns: ['nomComplet', 'status', 'phone', 'city', 'horsZone', 'sourceKey', 'echeance', 'submittedAt'],
     listSearchableFields: ['nomComplet', 'email', 'phone', 'city', 'postalCode'],
     description:
       'Toutes les demandes reçues par le site. Mettez à jour le statut au fil des échanges ; ' +
@@ -110,7 +110,13 @@ export const Leads: CollectionConfig = {
                 // Facultatif : au téléphone on n'a souvent que le nom et le numéro.
                 // Les formulaires du site, eux, exigent toujours un email.
                 { name: 'email', label: 'Email', type: 'email', index: true },
-                { name: 'phone', label: 'Téléphone', type: 'text', required: true },
+                {
+                  name: 'phone',
+                  label: 'Téléphone',
+                  type: 'text',
+                  required: true,
+                  admin: { components: { Cell: '/components/admin/cellules#CelluleTelephone' } },
+                },
               ],
             },
             { name: 'address', label: 'Adresse', type: 'text' },
@@ -141,6 +147,7 @@ export const Leads: CollectionConfig = {
                   admin: {
                     readOnly: true,
                     description: `Déplacement et devis facturés ${FRAIS_HORS_ZONE_HT} € HT, offerts si le client signe.`,
+                    components: { Cell: '/components/admin/cellules#CelluleHorsZone' },
                   },
                 },
                 {
@@ -279,6 +286,7 @@ export const Leads: CollectionConfig = {
                 { label: 'Bouche-à-oreille', value: 'bouche-a-oreille' },
               ],
               admin: {
+                components: { Cell: '/components/admin/cellules#CelluleCanal' },
                 description:
                   'Rempli automatiquement pour les demandes du site. Pour une saisie manuelle, ' +
                   'demandez au client comment il vous a connu : « Appel depuis le site » s’il vous a ' +
@@ -353,6 +361,7 @@ export const Leads: CollectionConfig = {
                 { label: 'Perdu', value: 'lost' },
                 { label: 'Spam', value: 'spam' },
               ],
+              admin: { components: { Cell: '/components/admin/cellules#CelluleStatut' } },
             },
             {
               type: 'row',
