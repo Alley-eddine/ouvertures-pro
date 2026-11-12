@@ -60,6 +60,7 @@ export const Appels: CollectionConfig = {
         { label: 'Autre campagne', value: 'campagne' },
         { label: 'Accès direct', value: 'direct' },
       ],
+      admin: { components: { Cell: '/components/admin/cellules#CelluleCanal' } },
     },
     { name: 'source', label: 'Provenance détaillée', type: 'text' },
     {
