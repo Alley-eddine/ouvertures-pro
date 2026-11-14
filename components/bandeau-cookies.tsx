@@ -34,28 +34,36 @@ export function BandeauCookies() {
   }
 
   const bouton =
-    "flex-1 h-11 rounded-lg border border-border bg-background px-4 text-sm font-semibold text-foreground " +
+    "flex-1 h-9 md:h-11 rounded-lg border border-border bg-background px-4 text-xs md:text-sm font-semibold text-foreground " +
     "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
 
+  // Sur mobile, la version longue couvrait la moitié de l'écran, dont le bouton
+  // « Demander un devis » des pages d'arrivée : on y garde l'essentiel.
   return (
     <div
       role="dialog"
       aria-labelledby="cookies-titre"
       aria-describedby="cookies-texte"
-      className="fixed inset-x-3 z-[60] md:inset-x-auto md:right-4 md:max-w-md bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-4 rounded-xl border border-border bg-background p-5 shadow-xl"
+      className="fixed inset-x-3 z-[60] md:inset-x-auto md:right-4 md:max-w-md bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-4 rounded-xl border border-border bg-background p-3 md:p-5 shadow-xl"
     >
-      <p id="cookies-titre" className="font-semibold text-foreground">
+      <p id="cookies-titre" className="text-sm md:text-base font-semibold text-foreground">
         Cookies publicitaires
       </p>
-      <p id="cookies-texte" className="mt-2 text-sm text-muted-foreground leading-relaxed">
-        Avec votre accord, nous utilisons des cookies Google Ads pour mesurer l&apos;efficacité de nos
-        annonces. Ils ne servent pas à autre chose et ne sont déposés que si vous acceptez. Vous pouvez
-        changer d&apos;avis à tout moment depuis le pied de page.{" "}
+      <p id="cookies-texte" className="mt-1 md:mt-2 text-xs md:text-sm text-muted-foreground leading-relaxed">
+        <span className="md:hidden">
+          Avec votre accord, des cookies Google Ads mesurent l&apos;efficacité de nos annonces. Rien n&apos;est
+          déposé si vous refusez.{" "}
+        </span>
+        <span className="hidden md:inline">
+          Avec votre accord, nous utilisons des cookies Google Ads pour mesurer l&apos;efficacité de nos
+          annonces. Ils ne servent pas à autre chose et ne sont déposés que si vous acceptez. Vous pouvez
+          changer d&apos;avis à tout moment depuis le pied de page.{" "}
+        </span>
         <Link href="/politique-confidentialite" className="underline underline-offset-2 hover:text-foreground">
           En savoir plus
         </Link>
       </p>
-      <div className="mt-4 flex gap-2">
+      <div className="mt-3 md:mt-4 flex gap-2">
         <button type="button" className={bouton} onClick={() => choisir(false)}>
           Tout refuser
         </button>
