@@ -19,9 +19,12 @@ export const RAYON_DEPANNAGE_KM = 20;
 export const SERVICE_DEPANNAGE = "reparation";
 
 /** Phrase de zone réutilisée sur le site. */
-export const TEXTE_ZONE =
-  `Devis et déplacement gratuits dans un rayon de ${RAYON_KM} km autour de Lisses. ` +
-  `Au-delà, ils sont facturés ${FRAIS_HORS_ZONE_HT} € HT, et offerts si vous signez le devis.`;
+// Phrases jointes par join() et non par « + » : Turbopack fusionnait mal deux
+// gabarits `${…}` concaténés et supprimait « km autour de Lisses. » en production.
+export const TEXTE_ZONE = [
+  `Devis et déplacement gratuits dans un rayon de ${RAYON_KM} km autour de Lisses.`,
+  `Au-delà, ils sont facturés ${FRAIS_HORS_ZONE_HT} € HT, et offerts si vous signez le devis.`,
+].join(" ");
 
 export const TEXTE_ZONE_DEPANNAGE =
   `Dépannages dans un rayon de ${RAYON_DEPANNAGE_KM} km autour de Lisses uniquement.`;
